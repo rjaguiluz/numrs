@@ -27,6 +27,7 @@ use crate::array::Array;
 use crate::llo::reduction::ReductionKind;
 use crate::llo::ElementwiseKind;
 use anyhow::{anyhow, Result};
+use rayon::prelude::*;
 
 // We use the portable `core::simd::Simd` type so this code works in a
 // cross-platform manner — if a host doesn't provide hardware SIMD, the
