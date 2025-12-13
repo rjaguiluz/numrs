@@ -18,7 +18,7 @@ serde-wasm-bindgen = "0.6"
 # wee_alloc = "0.4.5"  # Allocator eficiente para WASM
 # CPU-only build: disable BLAS and GPU backends for WASM
 # WebGPU requires async JS coordination which is not yet implemented
-numrs = { path = "../../numrs-core", default-features = false, features = ["disabled-blas"] }
+numrs = { package = "numrs-core", path = "../../numrs-core", default-features = false, features = ["disabled-blas"] }
 anyhow = "1.0"
 
 

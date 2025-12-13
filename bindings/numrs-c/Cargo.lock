@@ -1278,8 +1278,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "numrs"
-version = "0.0.1"
+name = "numrs-c"
+version = "0.1.0"
+dependencies = [
+ "cbindgen",
+ "chrono",
+ "numrs-core",
+ "sys-info",
+]
+
+[[package]]
+name = "numrs-core"
+version = "0.1.0"
 dependencies = [
  "accelerate-src",
  "anyhow",
@@ -1307,16 +1317,6 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu",
-]
-
-[[package]]
-name = "numrs-c"
-version = "0.1.0"
-dependencies = [
- "cbindgen",
- "chrono",
- "numrs",
- "sys-info",
 ]
 
 [[package]]
