@@ -70,7 +70,7 @@ unsafe fn conv1d_avx2_fma(
     use std::arch::x86_64::*;
 
     let mut output = Array::zeros(vec![batch_size, out_channels, out_length]);
-    let out_ptr: *mut f32 = output.data.as_mut_ptr();
+    let base_ptr: *mut f32 = output.data.as_mut_ptr();
 
     // Pre-process bias if present
     let bias_data = if let Some(b) = bias {
@@ -85,12 +85,12 @@ unsafe fn conv1d_avx2_fma(
     unsafe impl<T> Send for SendSyncPtr<T> {}
     unsafe impl<T> Sync for SendSyncPtr<T> {}
 
-    let out_ptr_wrapper = SendSyncPtr(out_ptr);
+    let out_ptr_wrapper = SendSyncPtr(base_ptr);
 
     // Parallelize over batch and output channels
     // Each thread handles one (batch, out_channel) slice outputting [out_length]
-    (0..batch_size).into_par_iter().for_each(|b_idx| {
-        (0..out_channels).into_par_iter().for_each(|oc| {
+    (0..batch_size).into_par_iter().for_each(move |b_idx| {
+        (0..out_channels).into_par_iter().for_each(move |oc| {
             let out_ptr = out_ptr_wrapper.0;
             // Get pointers relative to this task
             // Output start: b_idx * out_channels * out_length + oc * out_length
