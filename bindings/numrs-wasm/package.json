@@ -25,5 +25,8 @@
     "linear-algebra"
   ],
   "author": "numrs contributors",
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
 }

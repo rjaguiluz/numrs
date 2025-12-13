@@ -57,7 +57,9 @@ jobs:
       # Build & Publish WASM
       - name: Build WASM
         working-directory: ./bindings/numrs-wasm
-        run: npm run build:all
+        run: |
+          npm install
+          npm run build:all
 
       - name: Publish WASM
         working-directory: ./bindings/numrs-wasm
@@ -69,7 +71,9 @@ jobs:
       # Build & Publish JS
       - name: Build JS
         working-directory: ./bindings/numrs-js
-        run: npm run build
+        run: |
+          npm install
+          npm run build
 
       - name: Publish JS
         working-directory: ./bindings/numrs-js
