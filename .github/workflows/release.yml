@@ -21,14 +21,16 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       
       - name: Publish numrs-core
-        run: cargo publish -p numrs --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        working-directory: ./numrs-core
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
         continue-on-error: true # Might already be published
 
       - name: Publish numrs-c
         # Wait a bit for core to propagate
+        working-directory: ./bindings/numrs-c
         run: |
           sleep 30 
-          cargo publish -p numrs-c --manifest-path bindings/numrs-c/Cargo.toml --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
         continue-on-error: true
 
   # 2. Publish NPM Packages (JS/WASM)
