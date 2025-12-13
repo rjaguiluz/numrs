@@ -81,6 +81,8 @@ unsafe fn conv1d_avx2_fma(
         vec![0.0; out_channels]
     };
 
+    let bias_slice = bias_data.as_slice();
+
     // Parallelize over batch and output channels
     // Each thread handles one (batch, out_channel) slice outputting [out_length]
     (0..batch_size).into_par_iter().for_each(move |b_idx| {
@@ -96,7 +98,7 @@ unsafe fn conv1d_avx2_fma(
             // Input start: b_idx * in_channels * in_length
             let input_offset_base = b_idx * in_channels * in_length;
 
-            let bias_val = bias_data[oc];
+            let bias_val = bias_slice[oc];
             let v_bias = _mm256_set1_ps(bias_val);
 
             // Iterate over output sequence vectorized (8 elements at a time)
