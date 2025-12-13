@@ -80,6 +80,7 @@ unsafe fn conv1d_avx2_fma(
     };
 
     // Wrapper to allow passing raw pointer to threads safely (we manage offsets manually)
+    #[derive(Clone, Copy)]
     struct SendSyncPtr<T>(*mut T);
     unsafe impl<T> Send for SendSyncPtr<T> {}
     unsafe impl<T> Sync for SendSyncPtr<T> {}
@@ -89,8 +90,8 @@ unsafe fn conv1d_avx2_fma(
     // Parallelize over batch and output channels
     // Each thread handles one (batch, out_channel) slice outputting [out_length]
     (0..batch_size).into_par_iter().for_each(|b_idx| {
-        let out_ptr = out_ptr_wrapper.0;
         (0..out_channels).into_par_iter().for_each(|oc| {
+            let out_ptr = out_ptr_wrapper.0;
             // Get pointers relative to this task
             // Output start: b_idx * out_channels * out_length + oc * out_length
             let out_offset = b_idx * out_channels * out_length + oc * out_length;

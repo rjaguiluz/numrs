@@ -420,7 +420,7 @@ fn reduce_last_axis_simd(a: &Array, axis: usize, kind: ReductionKind) -> Result<
 
     let out_size: usize = out_shape.iter().product();
     let axis_size = a.shape[axis];
-    let out_data = vec![0.0; out_size];
+    let mut out_data = vec![0.0; out_size];
 
     match kind {
         ReductionKind::Sum | ReductionKind::Mean => {

@@ -11,7 +11,6 @@ pub mod dropout;
 use crate::array::Array;
 use anyhow::{anyhow, Result};
 use std::borrow::Cow;
-use wgpu::ShaderSource;
 
 // Para native: usamos OnceCell + Mutex para cache thread-safe
 #[cfg(not(target_arch = "wasm32"))]
