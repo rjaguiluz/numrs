@@ -70,7 +70,9 @@ unsafe fn conv1d_avx2_fma(
     use std::arch::x86_64::*;
 
     let mut output = Array::zeros(vec![batch_size, out_channels, out_length]);
-    let base_ptr: *mut f32 = output.data.as_mut_ptr();
+    // Safety strategy: Cast pointer to usize (integer) to pass through Rayon boundaries.
+    // Integers are always Send + Sync. We cast back to pointer inside the thread.
+    let base_ptr_addr = output.data.as_mut_ptr() as usize;
 
     // Pre-process bias if present
     let bias_data = if let Some(b) = bias {
@@ -79,19 +81,11 @@ unsafe fn conv1d_avx2_fma(
         vec![0.0; out_channels]
     };
 
-    // Wrapper to allow passing raw pointer to threads safely (we manage offsets manually)
-    #[derive(Clone, Copy)]
-    struct SendSyncPtr<T>(*mut T);
-    unsafe impl<T> Send for SendSyncPtr<T> {}
-    unsafe impl<T> Sync for SendSyncPtr<T> {}
-
-    let out_ptr_wrapper = SendSyncPtr(base_ptr);
-
     // Parallelize over batch and output channels
     // Each thread handles one (batch, out_channel) slice outputting [out_length]
     (0..batch_size).into_par_iter().for_each(move |b_idx| {
         (0..out_channels).into_par_iter().for_each(move |oc| {
-            let out_ptr = out_ptr_wrapper.0;
+            let out_ptr = base_ptr_addr as *mut f32;
             // Get pointers relative to this task
             // Output start: b_idx * out_channels * out_length + oc * out_length
             let out_offset = b_idx * out_channels * out_length + oc * out_length;
