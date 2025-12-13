@@ -1,0 +1,163 @@
+
+name: Release NumRs
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # 1. Publish Core & C-Crate to Crates.io
+  publish-rust:
+    name: Publish Rust Crates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Publish numrs-core
+        run: cargo publish -p numrs --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true # Might already be published
+
+      - name: Publish numrs-c
+        # Wait a bit for core to propagate
+        run: |
+          sleep 30 
+          cargo publish -p numrs-c --manifest-path bindings/numrs-c/Cargo.toml --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true
+
+  # 2. Publish NPM Packages (JS/WASM)
+  publish-npm:
+    name: Publish NPM Packages
+    runs-on: ubuntu-latest
+    needs: publish-rust
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust (WASM)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Build & Publish WASM
+      - name: Build WASM
+        working-directory: ./bindings/numrs-wasm
+        run: npm run build:all
+
+      - name: Publish WASM
+        working-directory: ./bindings/numrs-wasm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+      # Build & Publish JS
+      - name: Build JS
+        working-directory: ./bindings/numrs-js
+        run: npm run build
+
+      - name: Publish JS
+        working-directory: ./bindings/numrs-js
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+  # 3. Build & Publish Python Wheels (Matrix)
+  build-wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: publish-rust
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          # Important: Tell cibuildwheel to build numrs-c first
+          CIBW_BEFORE_ALL_LINUX: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && cd bindings/numrs-c && cargo build --release"
+          CIBW_BEFORE_ALL_MACOS: "cd bindings/numrs-c && cargo build --release"
+          CIBW_BEFORE_ALL_WINDOWS: "cd bindings/numrs-c && cargo build --release"
+          
+          # Repair wheels: auditwheel (Linux) and delocate (Mac) automatically bundle the .so/.dylib
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} -v {wheel}"
+          
+          # Point setup.py to the built library
+          # Note: We need a custom env var or move file logic in setup.py to find the lib
+          # For now, simplistic approach: copy lib to package dir in BEFORE_BUILD
+          CIBW_BEFORE_BUILD: "cp bindings/numrs-c/target/release/libnumrs_c* bindings/numrs-py/numrs/ || echo 'Windows DLL copy logic here'"
+
+        with:
+          package-dir: ./bindings/numrs-py
+          output-dir: wheelhouse
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build-wheels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-wheels-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: dist/
+
+  # 4. R Validation (CRAN Check) & Build
+  build-r:
+    name: R CRAN Check
+    runs-on: ubuntu-latest
+    needs: publish-rust
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Install dependencies
+        working-directory: ./bindings/numrs-r
+        run: |
+          install.packages(c("rcmdcheck", "devtools"))
+        shell: Rscript {0}
+
+      - name: Build R Package
+        working-directory: ./bindings/numrs-r
+        run: R CMD build .
+
+      - name: Check CRAN Compliance
+        working-directory: ./bindings/numrs-r
+        # Finds the .tar.gz generated by build and checks it
+        run: R CMD check --as-cran numrs_*.tar.gz
+

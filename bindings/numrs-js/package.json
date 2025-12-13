@@ -1,0 +1,32 @@
+{
+  "name": "numrs-node",
+  "version": "0.1.0",
+  "description": "Node.js bindings for NumRs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm run build:native && npm run build:ts",
+    "build:native": "cargo build --release && node ./scripts/postbuild.js",
+    "build:ts": "tsc",
+    "clean": "rm -rf dist target index.node",
+    "test": "node examples/api_demo.js"
+  },
+  "keywords": [
+    "numrs",
+    "tensor",
+    "autograd",
+    "numpy",
+    "pytorch"
+  ],
+  "author": "Rodrigo Aguiluz",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "@generated/numrs-node": "^0.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "napi-derive": "^2.16.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}

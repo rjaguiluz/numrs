@@ -1,0 +1,13 @@
+Package: numrs
+Type: Package
+Title: Bindings for NumRs Tensor Library
+Version: 0.1.0
+Author: NumRs Team
+Maintainer: NumRs Team <team@numrs.rs>
+Description: R bindings for the NumRs high-performance tensor library, using C ABI.
+License: AGPL-3.0
+Encoding: UTF-8
+LazyData: true
+Imports:
+    methods
+SystemRequirements: Rust

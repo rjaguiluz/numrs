@@ -1,0 +1,23 @@
+[package]
+name = "numrs-c"
+version = "0.1.0"
+edition = "2021"
+description = "C ABI bindings for NumRs"
+license = "AGPL-3.0-only"
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+numrs = { path = "../numrs-core", version = "0.1.0", default-features = false, features = ["blas-backend", "parallel"] }
+sys-info = "0.9"
+chrono = "0.4"
+
+[build-dependencies]
+cbindgen = "0.26"
+
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3

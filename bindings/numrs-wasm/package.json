@@ -1,0 +1,29 @@
+{
+  "name": "@numrs/wasm",
+  "version": "0.1.0",
+  "description": "NumRs WebAssembly bindings for browser and Node.js",
+  "main": "pkg/numrs_wasm.js",
+  "types": "pkg/numrs_wasm.d.ts",
+  "files": [
+    "pkg"
+  ],
+  "scripts": {
+    "build": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target nodejs --release --out-dir pkg",
+    "build:web": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target web --release --out-dir pkg-web",
+    "build:bundler": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target bundler --release --out-dir pkg-bundler",
+    "build:all": "npm run build && npm run build:web && npm run build:bundler",
+    "test": "wasm-pack test --node",
+    "bench": "node bench.js",
+    "bench:gpu": "node bench-gpu.js"
+  },
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "numpy",
+    "ndarray",
+    "tensor",
+    "linear-algebra"
+  ],
+  "author": "numrs contributors",
+  "license": "AGPL-3.0-only"
+}

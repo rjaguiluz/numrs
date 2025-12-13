@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+setup.py
+numrs/__init__.py
+numrs/array.py
+numrs/native_lib.py
+numrs/nn.py
+numrs/tensor.py
+numrs/train.py
+numrs.egg-info/PKG-INFO
+numrs.egg-info/SOURCES.txt
+numrs.egg-info/dependency_links.txt
+numrs.egg-info/requires.txt
+numrs.egg-info/top_level.txt

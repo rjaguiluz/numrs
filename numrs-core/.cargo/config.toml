@@ -1,0 +1,2 @@
+[alias]
+cov-core = "llvm-cov --html --output-dir target/llvm-cov/html-core-clean --ignore-filename-regex \"src/backend/|src/bin/|bin/|examples/|tests/|src/autograd/optim/lbfgs.rs|src/autograd/optim/lookahead.rs\""

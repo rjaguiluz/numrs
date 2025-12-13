@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NumRs WASM Console</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --sidebar-bg: #252526;
+            --editor-bg: #1e1e1e;
+            --console-bg: #1e1e1e;
+            --accent-color: #007acc;
+            --text-color: #d4d4d4;
+            --border-color: #3e3e42;
+            --success-color: #4ec9b0;
+            --error-color: #f14c4c;
+            --keyword-color: #569cd6;
+            --string-color: #ce9178;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #sidebar h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .example-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            text-align: left;
+            padding: 8px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
+
+        .example-btn:hover {
+            background-color: #37373d;
+        }
+
+        /* Main Content */
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Toolbar */
+        #toolbar {
+            height: 40px;
+            background-color: var(--bg-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            justify-content: space-between;
+        }
+
+        #status {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #888;
+        }
+
+        .status-dot.ready {
+            background-color: var(--success-color);
+        }
+
+        .status-dot.busy {
+            background-color: #cca700;
+        }
+
+        .status-dot.error {
+            background-color: var(--error-color);
+        }
+
+        #run-btn {
+            background-color: var(--success-color);
+            /* Green Play */
+            color: #1e1e1e;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        #run-btn:hover {
+            opacity: 0.9;
+        }
+
+        #run-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        /* Split Pane */
+        #split-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 40px);
+        }
+
+        /* Editor */
+        #editor-container {
+            flex: 1;
+            position: relative;
+            background-color: var(--editor-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor-label {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            font-size: 10px;
+            color: #555;
+            background: rgba(30, 30, 30, 0.8);
+            padding: 2px 5px;
+            z-index: 10;
+        }
+
+        #code-editor {
+            flex: 1;
+            background-color: transparent;
+            color: var(--text-color);
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            outline: none;
+            resize: none;
+            white-space: pre;
+            tab-size: 4;
+        }
+
+        /* Console Output */
+        #console-container {
+            height: 40%;
+            background-color: var(--console-bg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #console-header {
+            padding: 5px 10px;
+            background-color: #252526;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #clear-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        #clear-btn:hover {
+            color: #fff;
+        }
+
+        #console-output {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            border-bottom: 1px solid #2a2a2a;
+            padding-bottom: 2px;
+        }
+
+        .log-info {
+            color: #d4d4d4;
+        }
+
+        .log-warn {
+            color: #cca700;
+        }
+
+        .log-error {
+            color: var(--error-color);
+        }
+
+        .log-result {
+            color: var(--success-color);
+            font-style: italic;
+        }
+
+        .timestamp {
+            color: #555;
+            margin-right: 8px;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <h2>NumRs Examples</h2>
+        <button class="example-btn" data-snippet="basic_tensor">Basic Tensor Ops</button>
+        <button class="example-btn" data-snippet="matmul">Matrix Multiplication</button>
+        <button class="example-btn" data-snippet="reduction">Reductions (Sum/Max)</button>
+        <button class="example-btn" data-snippet="linear_layer">Manual Linear Layer</button>
+        <button class="example-btn" data-snippet="full_nn">Full Neural Network</button>
+        <button class="example-btn" data-snippet="fraud_detection">🚨 Fraud Detection</button>
+        <button class="example-btn" data-snippet="time_series">📈 Time Series</button>
+    </div>
+
+    <div id="main-content">
+        <div id="toolbar">
+            <div id="status">
+                <div id="status-dot" class="status-dot"></div>
+                <span id="status-text">Initializing WASM...</span>
+            </div>
+            <button id="run-btn" disabled>Run Code (Ctrl+Enter)</button>
+        </div>
+
+        <div id="split-container">
+            <div id="editor-container">
+                <span id="editor-label">JAVASCRIPT</span>
+                <textarea id="code-editor" spellcheck="false">// Select an example from the sidebar or start typing...
+console.log("Welcome to NumRs WASM Console!");
+</textarea>
+            </div>
+
+            <div id="console-container">
+                <div id="console-header">
+                    <span>Console Output</span>
+                    <button id="clear-btn">Clear</button>
+                </div>
+                <div id="console-output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="index.js?v=fix2"></script>
+</body>
+
+</html>

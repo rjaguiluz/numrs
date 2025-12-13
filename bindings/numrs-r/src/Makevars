@@ -1,0 +1,1 @@
+PKG_LIBS = -L../../../numrs-c/target/release -lnumrs_c

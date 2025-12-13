@@ -1,0 +1,89 @@
+# Rust artifacts
+**/target/
+**/*.rmeta
+**/*.rlib
+**/*.o
+**/*.rcgu.o
+*.exe
+
+# napi / node / JS artifacts
+**/node_modules/
+**/dist/
+*.node
+*.dll
+*.pdb
+*.exp
+
+# JS package manager caches
+**/.parcel-cache/
+
+# WASM
+**/pkg/
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*.pyo
+**/venv/
+**/env/
+**/.venv/
+.pytest_cache/
+pyrightconfig.json
+
+# VSCode and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/*.swp
+
+# Build products, temporary files
+*.log
+*.tmp
+*.bak
+compile_error.log
+build_output.txt
+
+# Generated data
+*.onnx.json
+
+# Cargo build metadata
+.fingerprint/
+
+# Coverage, diagnostics
+coverage/
+*.coverprofile
+coverage_report.txt
+
+# Local cargo config (keep .cargo/ directory structure but ignore config)
+.cargo/config.toml
+
+# Ignore generated output logs from build scripts
+js/target/*/stderr
+
+# Temporary test files in root
+/test_*.rs
+/test_*.*
+
+# Generated documentation files (keep core docs)
+ARCHITECTURE_DIAGRAM.md
+BENCHMARK*.md
+CHECKLIST*.md
+CLEANUP*.md
+GUIA*.md
+MKL_T*.md
+NUMPY_CO*.md
+RESUMEN_EJECUTIV*.md
+STATIC_BLAS*.md
+KERNEL_SELECTION*.md
+DISPATCH_SYSTEM.md
+PROGRESS.md
+compare_results.csv
+ops_impl.md
+ops_three.md
+OPS_CHECK.md

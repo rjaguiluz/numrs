@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NumRs WASM Fraud Detection Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        #log {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Consolas', 'Monaco', monospace;
+            padding: 15px;
+            border-radius: 4px;
+            height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-ready {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .status-busy {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #7f8c8d;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .params {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>NumRs WASM Fraud Detection Demo</h1>
+
+    <div class="card">
+        <div class="section-title">Configuration</div>
+        <div class="params">
+            <div>
+                <label for="epochs">Epochs</label>
+                <input type="number" id="epochs" value="100">
+            </div>
+            <div>
+                <label for="lr">Learning Rate</label>
+                <input type="number" id="lr" value="0.01" step="0.001">
+            </div>
+            <div>
+                <label for="batchSize">Batch Size</label>
+                <input type="number" id="batchSize" value="32">
+            </div>
+        </div>
+        <div class="controls">
+            <button id="btnInit">Initialize WASM</button>
+            <button id="btnTrain" disabled>Train Model</button>
+            <button id="btnExport" disabled>Export to ONNX (JSON)</button>
+            <button id="btnLoad" disabled>Load ONNX & Infer</button>
+        </div>
+        <div>Status: <span id="status" class="status-badge status-busy">Not Initialized</span></div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Execution Log</div>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        window.addEventListener('error', function (e) {
+            const logEl = document.getElementById('log');
+            if (logEl) logEl.textContent += `[Global Error] ${e.message} at ${e.filename}:${e.lineno}\n`;
+            console.error("Global captured error:", e);
+        });
+    </script>
+    <script type="module" src="./index.js?v=999"></script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+[package]
+name = "numrs-node"
+version = "0.1.0"
+edition = "2021"
+authors = ["numrs contributors"]
+
+[lib]
+name = "numrs_node"
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "2", features = ["napi4"] }
+napi-derive = "2"
+# Usar BLAS/MKL sin WebGPU para evitar async overhead en Node.js
+numrs = { path = "../../numrs-core", default-features = false, features = ["blas-backend"] }
+anyhow = "1.0"
+
+[features]
+default = []
+
+[package.metadata]
+# empty for now — npm packaging is handled in the top-level package.json
