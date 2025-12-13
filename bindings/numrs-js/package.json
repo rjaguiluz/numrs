@@ -9,7 +9,8 @@
     "build:native": "cargo build --release && node ./scripts/postbuild.js",
     "build:ts": "tsc",
     "clean": "rm -rf dist target index.node",
-    "test": "node examples/api_demo.js"
+    "test": "node examples/api_demo.js",
+    "install": "node scripts/install-native.js"
   },
   "keywords": [
     "numrs",

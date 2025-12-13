@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 napi = { version = "2", features = ["napi4"] }
 napi-derive = "2"
 # Usar BLAS/MKL sin WebGPU para evitar async overhead en Node.js
-numrs = { path = "../../numrs-core", default-features = false, features = ["blas-backend"] }
+numrs = { package = "numrs-core", version = "0.1.0", default-features = false, features = ["blas-backend"] }
 anyhow = "1.0"
 
 [features]
