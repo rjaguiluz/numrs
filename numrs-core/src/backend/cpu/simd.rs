@@ -24,9 +24,9 @@ pub fn elementwise_simd_supported() -> bool {
 }
 
 use crate::array::Array;
-use crate::llo::ElementwiseKind;
 use crate::llo::reduction::ReductionKind;
-use anyhow::{Result, anyhow};
+use crate::llo::ElementwiseKind;
+use anyhow::{anyhow, Result};
 
 // We use the portable `core::simd::Simd` type so this code works in a
 // cross-platform manner — if a host doesn't provide hardware SIMD, the
@@ -42,111 +42,155 @@ pub fn elementwise_simd(a: &Array, b: &Array, kind: ElementwiseKind) -> Result<A
     // the scalar version while allowing the compiler to generate vectorized
     // code paths on supported targets.
 
-    if a.shape != b.shape { return Err(anyhow!("shape mismatch in simd elementwise")); }
+    if a.shape != b.shape {
+        return Err(anyhow!("shape mismatch in simd elementwise"));
+    }
 
     let mut out = Array::<f32>::zeros(a.shape.clone());
     let n = a.len();
 
-    let i = 0usize;
+    let mut i = 0usize;
 
     // x86/x86_64 specialised fast paths (AVX2 -> 8 floats, SSE -> 4 floats)
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     unsafe {
         if std::is_x86_feature_detected!("avx2") {
-            #[cfg(target_arch = "x86_64")]
-            use std::arch::x86_64::*;
             #[cfg(target_arch = "x86")]
             use std::arch::x86::*;
+            #[cfg(target_arch = "x86_64")]
+            use std::arch::x86_64::*;
 
-                while i + 8 <= n {
+            while i + 8 <= n {
                 let pa = _mm256_loadu_ps(a.data.as_ptr().add(i));
-                    let pb = _mm256_loadu_ps(b.data.as_ptr().add(i));
-                    let pr = match kind {
-                        ElementwiseKind::Add => _mm256_add_ps(pa, pb),
-                        ElementwiseKind::Mul => _mm256_mul_ps(pa, pb),
-                        ElementwiseKind::Sub => _mm256_sub_ps(pa, pb),
-                        ElementwiseKind::Div => _mm256_div_ps(pa, pb),
-                        ElementwiseKind::Sqrt => _mm256_sqrt_ps(pa),
-                        // fall back to scalar for certain ops inside vectorized loop
-                        ElementwiseKind::Sin | ElementwiseKind::Cos | ElementwiseKind::Tan | ElementwiseKind::Abs | ElementwiseKind::Neg | ElementwiseKind::Exp | ElementwiseKind::Log | ElementwiseKind::Pow | ElementwiseKind::Asin | ElementwiseKind::Acos | ElementwiseKind::Atan | ElementwiseKind::Relu | ElementwiseKind::LeakyRelu | ElementwiseKind::Sigmoid | ElementwiseKind::Tanh | ElementwiseKind::Softplus => {
-                            // convert to scalars for this chunk; load both a and b lanes
-                            let mut tmp_a = [0.0f32; 8];
-                            let mut tmp_b = [0.0f32; 8];
-                            _mm256_storeu_ps(tmp_a.as_mut_ptr(), pa);
-                            _mm256_storeu_ps(tmp_b.as_mut_ptr(), pb);
-                            for j in 0..8 {
-                                tmp_a[j] = match kind {
-                                    ElementwiseKind::Sin => tmp_a[j].sin(),
-                                    ElementwiseKind::Cos => tmp_a[j].cos(),
-                                    ElementwiseKind::Tan => tmp_a[j].tan(),
-                                    ElementwiseKind::Abs => tmp_a[j].abs(),
-                                    ElementwiseKind::Neg => -tmp_a[j],
-                                    ElementwiseKind::Exp => tmp_a[j].exp(),
-                                    ElementwiseKind::Log => tmp_a[j].ln(),
-                                    ElementwiseKind::Pow => tmp_a[j].powf(tmp_b[j]),
-                                    ElementwiseKind::Asin => tmp_a[j].asin(),
-                                    ElementwiseKind::Acos => tmp_a[j].acos(),
-                                    ElementwiseKind::Atan => tmp_a[j].atan(),
-                                    ElementwiseKind::Relu => tmp_a[j].max(0.0),
-                                    ElementwiseKind::LeakyRelu => if tmp_a[j] > 0.0 { tmp_a[j] } else { 0.01 * tmp_a[j] },
-                                    ElementwiseKind::Sigmoid => 1.0 / (1.0 + (-tmp_a[j]).exp()),
-                                    ElementwiseKind::Tanh => tmp_a[j].tanh(),
-                                    ElementwiseKind::Softplus => (1.0 + tmp_a[j].exp()).ln(),
-                                    _ => tmp_a[j]
-                                };
-                            }
-                            let pr = _mm256_loadu_ps(tmp_a.as_ptr());
-                            pr
+                let pb = _mm256_loadu_ps(b.data.as_ptr().add(i));
+                let pr = match kind {
+                    ElementwiseKind::Add => _mm256_add_ps(pa, pb),
+                    ElementwiseKind::Mul => _mm256_mul_ps(pa, pb),
+                    ElementwiseKind::Sub => _mm256_sub_ps(pa, pb),
+                    ElementwiseKind::Div => _mm256_div_ps(pa, pb),
+                    ElementwiseKind::Sqrt => _mm256_sqrt_ps(pa),
+                    // fall back to scalar for certain ops inside vectorized loop
+                    ElementwiseKind::Sin
+                    | ElementwiseKind::Cos
+                    | ElementwiseKind::Tan
+                    | ElementwiseKind::Abs
+                    | ElementwiseKind::Neg
+                    | ElementwiseKind::Exp
+                    | ElementwiseKind::Log
+                    | ElementwiseKind::Pow
+                    | ElementwiseKind::Asin
+                    | ElementwiseKind::Acos
+                    | ElementwiseKind::Atan
+                    | ElementwiseKind::Relu
+                    | ElementwiseKind::LeakyRelu
+                    | ElementwiseKind::Sigmoid
+                    | ElementwiseKind::Tanh
+                    | ElementwiseKind::Softplus => {
+                        // convert to scalars for this chunk; load both a and b lanes
+                        let mut tmp_a = [0.0f32; 8];
+                        let mut tmp_b = [0.0f32; 8];
+                        _mm256_storeu_ps(tmp_a.as_mut_ptr(), pa);
+                        _mm256_storeu_ps(tmp_b.as_mut_ptr(), pb);
+                        for j in 0..8 {
+                            tmp_a[j] = match kind {
+                                ElementwiseKind::Sin => tmp_a[j].sin(),
+                                ElementwiseKind::Cos => tmp_a[j].cos(),
+                                ElementwiseKind::Tan => tmp_a[j].tan(),
+                                ElementwiseKind::Abs => tmp_a[j].abs(),
+                                ElementwiseKind::Neg => -tmp_a[j],
+                                ElementwiseKind::Exp => tmp_a[j].exp(),
+                                ElementwiseKind::Log => tmp_a[j].ln(),
+                                ElementwiseKind::Pow => tmp_a[j].powf(tmp_b[j]),
+                                ElementwiseKind::Asin => tmp_a[j].asin(),
+                                ElementwiseKind::Acos => tmp_a[j].acos(),
+                                ElementwiseKind::Atan => tmp_a[j].atan(),
+                                ElementwiseKind::Relu => tmp_a[j].max(0.0),
+                                ElementwiseKind::LeakyRelu => {
+                                    if tmp_a[j] > 0.0 {
+                                        tmp_a[j]
+                                    } else {
+                                        0.01 * tmp_a[j]
+                                    }
+                                }
+                                ElementwiseKind::Sigmoid => 1.0 / (1.0 + (-tmp_a[j]).exp()),
+                                ElementwiseKind::Tanh => tmp_a[j].tanh(),
+                                ElementwiseKind::Softplus => (1.0 + tmp_a[j].exp()).ln(),
+                                _ => tmp_a[j],
+                            };
                         }
-                    };
+                        let pr = _mm256_loadu_ps(tmp_a.as_ptr());
+                        pr
+                    }
+                };
                 _mm256_storeu_ps(out.data.as_mut_ptr().add(i), pr);
                 i += 8;
             }
         } else if std::is_x86_feature_detected!("sse2") {
-            #[cfg(target_arch = "x86_64")]
-            use std::arch::x86_64::*;
             #[cfg(target_arch = "x86")]
             use std::arch::x86::*;
+            #[cfg(target_arch = "x86_64")]
+            use std::arch::x86_64::*;
 
-                while i + 4 <= n {
+            while i + 4 <= n {
                 let pa = _mm_loadu_ps(a.data.as_ptr().add(i));
-                    let pb = _mm_loadu_ps(b.data.as_ptr().add(i));
-                    let pr = match kind {
-                        ElementwiseKind::Add => _mm_add_ps(pa, pb),
-                        ElementwiseKind::Mul => _mm_mul_ps(pa, pb),
-                        ElementwiseKind::Sub => _mm_sub_ps(pa, pb),
-                        ElementwiseKind::Div => _mm_div_ps(pa, pb),
-                        ElementwiseKind::Sqrt => _mm_sqrt_ps(pa),
-                        ElementwiseKind::Sin | ElementwiseKind::Cos | ElementwiseKind::Tan | ElementwiseKind::Abs | ElementwiseKind::Neg | ElementwiseKind::Exp | ElementwiseKind::Log | ElementwiseKind::Pow | ElementwiseKind::Asin | ElementwiseKind::Acos | ElementwiseKind::Atan | ElementwiseKind::Relu | ElementwiseKind::LeakyRelu | ElementwiseKind::Sigmoid | ElementwiseKind::Tanh | ElementwiseKind::Softplus => {
-                            let mut tmp_a = [0.0f32; 4];
-                            let mut tmp_b = [0.0f32; 4];
-                            _mm_storeu_ps(tmp_a.as_mut_ptr(), pa);
-                            _mm_storeu_ps(tmp_b.as_mut_ptr(), pb);
-                            for j in 0..4 {
-                                tmp_a[j] = match kind {
-                                    ElementwiseKind::Sin => tmp_a[j].sin(),
-                                    ElementwiseKind::Cos => tmp_a[j].cos(),
-                                    ElementwiseKind::Tan => tmp_a[j].tan(),
-                                    ElementwiseKind::Abs => tmp_a[j].abs(),
-                                    ElementwiseKind::Neg => -tmp_a[j],
-                                    ElementwiseKind::Exp => tmp_a[j].exp(),
-                                    ElementwiseKind::Log => tmp_a[j].ln(),
-                                    ElementwiseKind::Pow => tmp_a[j].powf(tmp_b[j]),
-                                    ElementwiseKind::Asin => tmp_a[j].asin(),
-                                    ElementwiseKind::Acos => tmp_a[j].acos(),
-                                    ElementwiseKind::Atan => tmp_a[j].atan(),
-                                    ElementwiseKind::Relu => tmp_a[j].max(0.0),
-                                    ElementwiseKind::LeakyRelu => if tmp_a[j] > 0.0 { tmp_a[j] } else { 0.01 * tmp_a[j] },
-                                    ElementwiseKind::Sigmoid => 1.0 / (1.0 + (-tmp_a[j]).exp()),
-                                    ElementwiseKind::Tanh => tmp_a[j].tanh(),
-                                    ElementwiseKind::Softplus => (1.0 + tmp_a[j].exp()).ln(),
-                                    _ => tmp_a[j]
-                                };
-                            }
-                            let pr = _mm_loadu_ps(tmp_a.as_ptr());
-                            pr
+                let pb = _mm_loadu_ps(b.data.as_ptr().add(i));
+                let pr = match kind {
+                    ElementwiseKind::Add => _mm_add_ps(pa, pb),
+                    ElementwiseKind::Mul => _mm_mul_ps(pa, pb),
+                    ElementwiseKind::Sub => _mm_sub_ps(pa, pb),
+                    ElementwiseKind::Div => _mm_div_ps(pa, pb),
+                    ElementwiseKind::Sqrt => _mm_sqrt_ps(pa),
+                    ElementwiseKind::Sin
+                    | ElementwiseKind::Cos
+                    | ElementwiseKind::Tan
+                    | ElementwiseKind::Abs
+                    | ElementwiseKind::Neg
+                    | ElementwiseKind::Exp
+                    | ElementwiseKind::Log
+                    | ElementwiseKind::Pow
+                    | ElementwiseKind::Asin
+                    | ElementwiseKind::Acos
+                    | ElementwiseKind::Atan
+                    | ElementwiseKind::Relu
+                    | ElementwiseKind::LeakyRelu
+                    | ElementwiseKind::Sigmoid
+                    | ElementwiseKind::Tanh
+                    | ElementwiseKind::Softplus => {
+                        let mut tmp_a = [0.0f32; 4];
+                        let mut tmp_b = [0.0f32; 4];
+                        _mm_storeu_ps(tmp_a.as_mut_ptr(), pa);
+                        _mm_storeu_ps(tmp_b.as_mut_ptr(), pb);
+                        for j in 0..4 {
+                            tmp_a[j] = match kind {
+                                ElementwiseKind::Sin => tmp_a[j].sin(),
+                                ElementwiseKind::Cos => tmp_a[j].cos(),
+                                ElementwiseKind::Tan => tmp_a[j].tan(),
+                                ElementwiseKind::Abs => tmp_a[j].abs(),
+                                ElementwiseKind::Neg => -tmp_a[j],
+                                ElementwiseKind::Exp => tmp_a[j].exp(),
+                                ElementwiseKind::Log => tmp_a[j].ln(),
+                                ElementwiseKind::Pow => tmp_a[j].powf(tmp_b[j]),
+                                ElementwiseKind::Asin => tmp_a[j].asin(),
+                                ElementwiseKind::Acos => tmp_a[j].acos(),
+                                ElementwiseKind::Atan => tmp_a[j].atan(),
+                                ElementwiseKind::Relu => tmp_a[j].max(0.0),
+                                ElementwiseKind::LeakyRelu => {
+                                    if tmp_a[j] > 0.0 {
+                                        tmp_a[j]
+                                    } else {
+                                        0.01 * tmp_a[j]
+                                    }
+                                }
+                                ElementwiseKind::Sigmoid => 1.0 / (1.0 + (-tmp_a[j]).exp()),
+                                ElementwiseKind::Tanh => tmp_a[j].tanh(),
+                                ElementwiseKind::Softplus => (1.0 + tmp_a[j].exp()).ln(),
+                                _ => tmp_a[j],
+                            };
                         }
-                    };
+                        let pr = _mm_loadu_ps(tmp_a.as_ptr());
+                        pr
+                    }
+                };
                 _mm_storeu_ps(out.data.as_mut_ptr().add(i), pr);
                 i += 4;
             }
@@ -173,7 +217,13 @@ pub fn elementwise_simd(a: &Array, b: &Array, kind: ElementwiseKind) -> Result<A
             ElementwiseKind::Acos => a.data[j].acos(),
             ElementwiseKind::Atan => a.data[j].atan(),
             ElementwiseKind::Relu => a.data[j].max(0.0),
-            ElementwiseKind::LeakyRelu => if a.data[j] > 0.0 { a.data[j] } else { 0.01 * a.data[j] },
+            ElementwiseKind::LeakyRelu => {
+                if a.data[j] > 0.0 {
+                    a.data[j]
+                } else {
+                    0.01 * a.data[j]
+                }
+            }
             ElementwiseKind::Sigmoid => 1.0 / (1.0 + (-a.data[j]).exp()),
             ElementwiseKind::Tanh => a.data[j].tanh(),
             ElementwiseKind::Softplus => (1.0 + a.data[j].exp()).ln(),
@@ -196,10 +246,10 @@ pub fn reduce_simd(a: &Array, axis: Option<usize>, kind: ReductionKind) -> Resul
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                 unsafe {
                     if std::is_x86_feature_detected!("avx2") {
-                        #[cfg(target_arch = "x86_64")]
-                        use std::arch::x86_64::*;
                         #[cfg(target_arch = "x86")]
                         use std::arch::x86::*;
+                        #[cfg(target_arch = "x86_64")]
+                        use std::arch::x86_64::*;
 
                         let mut i = 0usize;
                         let mut acc = _mm256_setzero_ps();
@@ -233,10 +283,10 @@ pub fn reduce_simd(a: &Array, axis: Option<usize>, kind: ReductionKind) -> Resul
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                 unsafe {
                     if std::is_x86_feature_detected!("avx2") {
-                        #[cfg(target_arch = "x86_64")]
-                        use std::arch::x86_64::*;
                         #[cfg(target_arch = "x86")]
                         use std::arch::x86::*;
+                        #[cfg(target_arch = "x86_64")]
+                        use std::arch::x86_64::*;
 
                         let mut i = 0usize;
                         let mut acc = _mm256_set1_ps(f32::NEG_INFINITY);
@@ -270,17 +320,21 @@ pub fn reduce_simd(a: &Array, axis: Option<usize>, kind: ReductionKind) -> Resul
                 }
 
                 // Fallback to scalar
-                let max_val = a.data.iter().copied().fold(f32::NEG_INFINITY, |acc, x| acc.max(x));
+                let max_val = a
+                    .data
+                    .iter()
+                    .copied()
+                    .fold(f32::NEG_INFINITY, |acc, x| acc.max(x));
                 Ok(Array::new(vec![1], vec![max_val]))
             }
             ReductionKind::Min => {
                 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
                 unsafe {
                     if std::is_x86_feature_detected!("avx2") {
-                        #[cfg(target_arch = "x86_64")]
-                        use std::arch::x86_64::*;
                         #[cfg(target_arch = "x86")]
                         use std::arch::x86::*;
+                        #[cfg(target_arch = "x86_64")]
+                        use std::arch::x86_64::*;
 
                         let mut i = 0usize;
                         let mut acc = _mm256_set1_ps(f32::INFINITY);
@@ -314,7 +368,11 @@ pub fn reduce_simd(a: &Array, axis: Option<usize>, kind: ReductionKind) -> Resul
                 }
 
                 // Fallback to scalar
-                let min_val = a.data.iter().copied().fold(f32::INFINITY, |acc, x| acc.min(x));
+                let min_val = a
+                    .data
+                    .iter()
+                    .copied()
+                    .fold(f32::INFINITY, |acc, x| acc.min(x));
                 Ok(Array::new(vec![1], vec![min_val]))
             }
             ReductionKind::Mean => {
@@ -331,12 +389,12 @@ pub fn reduce_simd(a: &Array, axis: Option<usize>, kind: ReductionKind) -> Resul
     } else {
         // Axis-based reduction
         let axis = axis.unwrap();
-        
+
         // OPTIMIZED PATH: Reducing over last axis with SIMD
         if axis == a.shape.len() - 1 {
             return reduce_last_axis_simd(a, axis, kind);
         }
-        
+
         // For other axes, fallback to scalar implementation
         // TODO: optimize specific cases (e.g., reducing axis 0 with proper striding)
         crate::backend::cpu::scalar::reduce_scalar(a, Some(axis), kind)
@@ -346,133 +404,140 @@ pub fn reduce_simd(a: &Array, axis: Option<usize>, kind: ReductionKind) -> Resul
 /// Optimized SIMD reduction over the last axis
 /// This is the most cache-friendly case as data is contiguous
 fn reduce_last_axis_simd(a: &Array, axis: usize, kind: ReductionKind) -> Result<Array> {
-
-    
     // Compute output shape
-    let mut out_shape: Vec<usize> = a.shape.iter().enumerate()
+    let mut out_shape: Vec<usize> = a
+        .shape
+        .iter()
+        .enumerate()
         .filter(|(i, _)| *i != axis)
         .map(|(_, &d)| d)
         .collect();
-    
+
     if out_shape.is_empty() {
         out_shape.push(1);
     }
-    
+
     let out_size: usize = out_shape.iter().product();
     let axis_size = a.shape[axis];
-    let _out_data = vec![0.0; out_size];
-    
+    let out_data = vec![0.0; out_size];
+
     match kind {
         ReductionKind::Sum | ReductionKind::Mean => {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             {
                 if std::is_x86_feature_detected!("avx2") {
-                    out_data.par_iter_mut().enumerate().for_each(|(row_idx, out_val)| {
-                        let start = row_idx * axis_size;
-                        let end = start + axis_size;
-                        
-                        unsafe {
-                            #[cfg(target_arch = "x86_64")]
-                            use std::arch::x86_64::*;
-                            #[cfg(target_arch = "x86")]
-                            use std::arch::x86::*;
-                            
-                            let mut acc = _mm256_setzero_ps();
-                            let mut i = start;
-                            
-                            // Process 8 elements at a time with SIMD
-                            while i + 8 <= end {
-                                let p = _mm256_loadu_ps(a.data.as_ptr().add(i));
-                                acc = _mm256_add_ps(acc, p);
-                                i += 8;
+                    out_data
+                        .par_iter_mut()
+                        .enumerate()
+                        .for_each(|(row_idx, out_val)| {
+                            let start = row_idx * axis_size;
+                            let end = start + axis_size;
+
+                            unsafe {
+                                #[cfg(target_arch = "x86")]
+                                use std::arch::x86::*;
+                                #[cfg(target_arch = "x86_64")]
+                                use std::arch::x86_64::*;
+
+                                let mut acc = _mm256_setzero_ps();
+                                let mut i = start;
+
+                                // Process 8 elements at a time with SIMD
+                                while i + 8 <= end {
+                                    let p = _mm256_loadu_ps(a.data.as_ptr().add(i));
+                                    acc = _mm256_add_ps(acc, p);
+                                    i += 8;
+                                }
+
+                                // Horizontal sum
+                                let mut s = [0.0f32; 8];
+                                _mm256_storeu_ps(s.as_mut_ptr(), acc);
+                                let mut sum: f32 = s.iter().sum();
+
+                                // Handle remaining elements
+                                while i < end {
+                                    sum += a.data[i];
+                                    i += 1;
+                                }
+
+                                *out_val = sum;
                             }
-                            
-                            // Horizontal sum
-                            let mut s = [0.0f32; 8];
-                            _mm256_storeu_ps(s.as_mut_ptr(), acc);
-                            let mut sum: f32 = s.iter().sum();
-                            
-                            // Handle remaining elements
-                            while i < end {
-                                sum += a.data[i];
-                                i += 1;
-                            }
-                            
-                            *out_val = sum;
-                        }
-                    });
-                    
+                        });
+
                     if kind == ReductionKind::Mean {
                         out_data.par_iter_mut().for_each(|x| *x /= axis_size as f32);
                     }
-                    
+
                     return Ok(Array::new(out_shape, out_data));
                 }
             }
-            
+
             // Fallback to scalar
             return crate::backend::cpu::scalar::reduce_last_axis_optimized(
-                a, axis_size, out_size, out_shape, kind
+                a, axis_size, out_size, out_shape, kind,
             );
         }
         ReductionKind::Max => {
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             {
                 if std::is_x86_feature_detected!("avx2") {
-                    out_data.par_iter_mut().enumerate().for_each(|(row_idx, out_val)| {
-                        let start = row_idx * axis_size;
-                        let end = start + axis_size;
-                        
-                        unsafe {
-                            #[cfg(target_arch = "x86_64")]
-                            use std::arch::x86_64::*;
-                            #[cfg(target_arch = "x86")]
-                            use std::arch::x86::*;
-                            
-                            let mut acc = _mm256_set1_ps(f32::NEG_INFINITY);
-                            let mut i = start;
-                            
-                            while i + 8 <= end {
-                                let p = _mm256_loadu_ps(a.data.as_ptr().add(i));
-                                acc = _mm256_max_ps(acc, p);
-                                i += 8;
-                            }
-                            
-                            // Horizontal max
-                            let mut s = [0.0f32; 8];
-                            _mm256_storeu_ps(s.as_mut_ptr(), acc);
-                            let mut max_val = s[0];
-                            for &v in &s[1..] {
-                                if v > max_val {
-                                    max_val = v;
+                    out_data
+                        .par_iter_mut()
+                        .enumerate()
+                        .for_each(|(row_idx, out_val)| {
+                            let start = row_idx * axis_size;
+                            let end = start + axis_size;
+
+                            unsafe {
+                                #[cfg(target_arch = "x86")]
+                                use std::arch::x86::*;
+                                #[cfg(target_arch = "x86_64")]
+                                use std::arch::x86_64::*;
+
+                                let mut acc = _mm256_set1_ps(f32::NEG_INFINITY);
+                                let mut i = start;
+
+                                while i + 8 <= end {
+                                    let p = _mm256_loadu_ps(a.data.as_ptr().add(i));
+                                    acc = _mm256_max_ps(acc, p);
+                                    i += 8;
                                 }
-                            }
-                            
-                            // Handle remaining elements
-                            while i < end {
-                                if a.data[i] > max_val {
-                                    max_val = a.data[i];
+
+                                // Horizontal max
+                                let mut s = [0.0f32; 8];
+                                _mm256_storeu_ps(s.as_mut_ptr(), acc);
+                                let mut max_val = s[0];
+                                for &v in &s[1..] {
+                                    if v > max_val {
+                                        max_val = v;
+                                    }
                                 }
-                                i += 1;
+
+                                // Handle remaining elements
+                                while i < end {
+                                    if a.data[i] > max_val {
+                                        max_val = a.data[i];
+                                    }
+                                    i += 1;
+                                }
+
+                                *out_val = max_val;
                             }
-                            
-                            *out_val = max_val;
-                        }
-                    });
-                    
+                        });
+
                     return Ok(Array::new(out_shape, out_data));
                 }
             }
-            
+
             // Fallback
             return crate::backend::cpu::scalar::reduce_last_axis_optimized(
-                a, axis_size, out_size, out_shape, kind
+                a, axis_size, out_size, out_shape, kind,
             );
         }
         _ => {
             // For other operations, use scalar optimized version
             return crate::backend::cpu::scalar::reduce_last_axis_optimized(
-                a, axis_size, out_size, out_shape, kind
+                a, axis_size, out_size, out_shape, kind,
             );
         }
     }
@@ -481,7 +546,7 @@ fn reduce_last_axis_simd(a: &Array, axis: usize, kind: ReductionKind) -> Result<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::backend::cpu::scalar as scalar;
+    use crate::backend::cpu::scalar;
 
     fn make_arrays(len: usize) -> (Array, Array) {
         let a = (0..len).map(|i| i as f32 * 0.5 + 0.1).collect::<Vec<_>>();
@@ -523,7 +588,9 @@ pub fn dot_simd(a: &Array, b: &Array) -> Result<f32> {
     {
         if std::is_x86_feature_detected!("fma") && std::is_x86_feature_detected!("avx2") {
             // SAFETY: We checked for AVX2+FMA support
-            unsafe { return dot_simd_avx2_fma(a, b); }
+            unsafe {
+                return dot_simd_avx2_fma(a, b);
+            }
         }
     }
 
@@ -541,7 +608,7 @@ unsafe fn dot_simd_avx2_fma(a: &Array, b: &Array) -> Result<f32> {
 
     let n = a.data.len();
     let mut sum = _mm256_setzero_ps();
-    
+
     // Process 8 floats at a time
     let chunks = n / 8;
     for i in 0..chunks {
@@ -571,15 +638,18 @@ pub fn matmul_simd(a: &Array, b: &Array) -> Array {
     if a.shape.len() != 2 || b.shape.len() != 2 {
         panic!("matmul_simd: both inputs must be 2-D arrays");
     }
-    
-    let _m = a.shape[0];
+
+    let m = a.shape[0];
     let k = a.shape[1];
-    let _n = b.shape[1];
-    
+    let n = b.shape[1];
+
     if k != b.shape[0] {
-        panic!("matmul_simd: inner dimension mismatch: {} != {}", k, b.shape[0]);
+        panic!(
+            "matmul_simd: inner dimension mismatch: {} != {}",
+            k, b.shape[0]
+        );
     }
-    
+
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     {
         if std::is_x86_feature_detected!("avx2") && std::is_x86_feature_detected!("fma") {
@@ -588,7 +658,7 @@ pub fn matmul_simd(a: &Array, b: &Array) -> Array {
             return matmul_simd_parallel(a, b, m, k, n);
         }
     }
-    
+
     // Fallback to scalar if SIMD not available
     super::matmul_scalar_direct(a, b)
 }
@@ -598,42 +668,43 @@ pub fn matmul_simd(a: &Array, b: &Array) -> Array {
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn matmul_simd_parallel(a: &Array, b: &Array, m: usize, k: usize, n: usize) -> Array {
     use rayon::prelude::*;
-    
+
     // Adaptive block size based on matrix dimensions
     // Larger blocks for better cache utilization on large matrices
     let block_size = if m >= 2048 { 256 } else { 128 };
     let mut result = vec![0.0f32; m * n];
-    
-    result.par_chunks_mut(block_size * n)
+
+    result
+        .par_chunks_mut(block_size * n)
         .enumerate()
         .for_each(|(block_idx, out_block)| {
             let start = block_idx * block_size;
             let end = (start + block_size).min(m);
             let block_rows = end - start;
-            
+
             // Zero-copy: use direct slice view of A (no allocation)
             let a_block_start = start * k;
             let a_block_end = end * k;
             let a_block_slice = &a.data[a_block_start..a_block_end];
-            
+
             // Create temporary Array view without copying
             let a_block = Array::new(vec![block_rows, k], a_block_slice.to_vec());
-            
+
             // Procesar bloque con SIMD
             // SAFETY: We already checked for AVX2+FMA in parent function
             unsafe {
                 let block_result = matmul_simd_avx2_fma_blocked(
-                    &a_block, 
-                    b, 
-                    block_rows, 
-                    k, 
-                    n, 
-                    vec![0.0f32; block_rows * n]
+                    &a_block,
+                    b,
+                    block_rows,
+                    k,
+                    n,
+                    vec![0.0f32; block_rows * n],
                 );
                 out_block.copy_from_slice(&block_result.data);
             }
         });
-    
+
     Array::new(vec![m, n], result)
 }
 
@@ -645,28 +716,28 @@ unsafe fn matmul_simd_avx2_fma_blocked(
     m: usize,
     k: usize,
     n: usize,
-    mut result: Vec<f32>
+    mut result: Vec<f32>,
 ) -> Array {
     #[cfg(target_arch = "x86")]
     use std::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
     use std::arch::x86_64::*;
-    
+
     // Optimized block sizes: larger blocks for better arithmetic intensity
-    const BLOCK_M: usize = 96;  // Process 96 rows per block
+    const BLOCK_M: usize = 96; // Process 96 rows per block
     const BLOCK_N: usize = 256; // Process 256 cols per block (32 AVX2 registers)
     const BLOCK_K: usize = 512; // Larger K block for better data reuse
-    
+
     // Blocked matrix multiplication with advanced SIMD
     for i0 in (0..m).step_by(BLOCK_M) {
         let i_end = (i0 + BLOCK_M).min(m);
-        
+
         for j0 in (0..n).step_by(BLOCK_N) {
             let j_end = (j0 + BLOCK_N).min(n);
-            
+
             for k0 in (0..k).step_by(BLOCK_K) {
                 let k_end = (k0 + BLOCK_K).min(k);
-                
+
                 // Process 2 rows at a time for better register utilization
                 let mut i = i0;
                 while i + 2 <= i_end {
@@ -674,23 +745,28 @@ unsafe fn matmul_simd_avx2_fma_blocked(
                     let a_row1_offset = (i + 1) * k;
                     let result_row0_offset = i * n;
                     let result_row1_offset = (i + 1) * n;
-                    
+
                     // Process 16 columns at a time (2 AVX2 registers)
                     let mut j = j0;
                     while j + 16 <= j_end {
-                        let mut sum0_0 = _mm256_loadu_ps(result.as_ptr().add(result_row0_offset + j));
-                        let mut sum0_1 = _mm256_loadu_ps(result.as_ptr().add(result_row0_offset + j + 8));
-                        let mut sum1_0 = _mm256_loadu_ps(result.as_ptr().add(result_row1_offset + j));
-                        let mut sum1_1 = _mm256_loadu_ps(result.as_ptr().add(result_row1_offset + j + 8));
-                        
+                        let mut sum0_0 =
+                            _mm256_loadu_ps(result.as_ptr().add(result_row0_offset + j));
+                        let mut sum0_1 =
+                            _mm256_loadu_ps(result.as_ptr().add(result_row0_offset + j + 8));
+                        let mut sum1_0 =
+                            _mm256_loadu_ps(result.as_ptr().add(result_row1_offset + j));
+                        let mut sum1_1 =
+                            _mm256_loadu_ps(result.as_ptr().add(result_row1_offset + j + 8));
+
                         // Inner loop: accumulate over k-block with FMA
                         for kk in k0..k_end {
                             let a_val0 = _mm256_set1_ps(a.data[a_row0_offset + kk]);
                             let a_val1 = _mm256_set1_ps(a.data[a_row1_offset + kk]);
                             let b_row_offset = kk * n;
                             let b_vals0 = _mm256_loadu_ps(b.data.as_ptr().add(b_row_offset + j));
-                            let b_vals1 = _mm256_loadu_ps(b.data.as_ptr().add(b_row_offset + j + 8));
-                            
+                            let b_vals1 =
+                                _mm256_loadu_ps(b.data.as_ptr().add(b_row_offset + j + 8));
+
                             // FMA: sum = sum + (a_val * b_vals)
                             // Process both rows and both column sets simultaneously
                             sum0_0 = _mm256_fmadd_ps(a_val0, b_vals0, sum0_0);
@@ -698,33 +774,39 @@ unsafe fn matmul_simd_avx2_fma_blocked(
                             sum1_0 = _mm256_fmadd_ps(a_val1, b_vals0, sum1_0);
                             sum1_1 = _mm256_fmadd_ps(a_val1, b_vals1, sum1_1);
                         }
-                        
+
                         _mm256_storeu_ps(result.as_mut_ptr().add(result_row0_offset + j), sum0_0);
-                        _mm256_storeu_ps(result.as_mut_ptr().add(result_row0_offset + j + 8), sum0_1);
+                        _mm256_storeu_ps(
+                            result.as_mut_ptr().add(result_row0_offset + j + 8),
+                            sum0_1,
+                        );
                         _mm256_storeu_ps(result.as_mut_ptr().add(result_row1_offset + j), sum1_0);
-                        _mm256_storeu_ps(result.as_mut_ptr().add(result_row1_offset + j + 8), sum1_1);
+                        _mm256_storeu_ps(
+                            result.as_mut_ptr().add(result_row1_offset + j + 8),
+                            sum1_1,
+                        );
                         j += 16;
                     }
-                    
+
                     // Process remaining columns in chunks of 8
                     while j + 8 <= j_end {
                         let mut sum0 = _mm256_loadu_ps(result.as_ptr().add(result_row0_offset + j));
                         let mut sum1 = _mm256_loadu_ps(result.as_ptr().add(result_row1_offset + j));
-                        
+
                         for kk in k0..k_end {
                             let a_val0 = _mm256_set1_ps(a.data[a_row0_offset + kk]);
                             let a_val1 = _mm256_set1_ps(a.data[a_row1_offset + kk]);
                             let b_vals = _mm256_loadu_ps(b.data.as_ptr().add(kk * n + j));
-                            
+
                             sum0 = _mm256_fmadd_ps(a_val0, b_vals, sum0);
                             sum1 = _mm256_fmadd_ps(a_val1, b_vals, sum1);
                         }
-                        
+
                         _mm256_storeu_ps(result.as_mut_ptr().add(result_row0_offset + j), sum0);
                         _mm256_storeu_ps(result.as_mut_ptr().add(result_row1_offset + j), sum1);
                         j += 8;
                     }
-                    
+
                     // Handle remaining columns with scalar code
                     for j in j..j_end {
                         let mut sum0 = result[result_row0_offset + j];
@@ -737,29 +819,29 @@ unsafe fn matmul_simd_avx2_fma_blocked(
                         result[result_row0_offset + j] = sum0;
                         result[result_row1_offset + j] = sum1;
                     }
-                    
+
                     i += 2;
                 }
-                
+
                 // Handle remaining single row if m is odd
                 if i < i_end {
                     let a_row_offset = i * k;
                     let result_row_offset = i * n;
-                    
+
                     let mut j = j0;
                     while j + 8 <= j_end {
                         let mut sum = _mm256_loadu_ps(result.as_ptr().add(result_row_offset + j));
-                        
+
                         for kk in k0..k_end {
                             let a_val = _mm256_set1_ps(a.data[a_row_offset + kk]);
                             let b_vals = _mm256_loadu_ps(b.data.as_ptr().add(kk * n + j));
                             sum = _mm256_fmadd_ps(a_val, b_vals, sum);
                         }
-                        
+
                         _mm256_storeu_ps(result.as_mut_ptr().add(result_row_offset + j), sum);
                         j += 8;
                     }
-                    
+
                     for j in j..j_end {
                         let mut sum = result[result_row_offset + j];
                         for kk in k0..k_end {
@@ -771,7 +853,7 @@ unsafe fn matmul_simd_avx2_fma_blocked(
             }
         }
     }
-    
+
     Array::new(vec![m, n], result)
 }
 
