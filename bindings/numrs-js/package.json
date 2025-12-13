@@ -21,9 +21,6 @@
   ],
   "author": "Rodrigo Aguiluz",
   "license": "AGPL-3.0-only",
-  "dependencies": {
-    "@generated/numrs-node": "^0.0.0"
-  },
   "devDependencies": {
     "@types/node": "^22.10.1",
     "napi-derive": "^2.16.1",
