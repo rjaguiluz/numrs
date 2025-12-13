@@ -48,21 +48,10 @@ Select your preferred language to view the specific documentation:
 
 ---
 
-## Module Documentation (Internal internals)
+## DeepWiki Documentation (IA generated docs)
 
-Detailed architecture documentation for `numrs-core` developers:
+[DeepWiki](https://deepwiki.com/rjaguiluz/numrs)
 
-### 📦 [src/array](src/array/README.md)
-**The Data Layer**. Defines `Array<T>`, `DynArray` (dynamic typing), and the Type Promotion system.
-
-### 🧮 [src/ops](src/ops/README.md)
-**The User API**. Contains the definitions for all mathematical operations (`add`, `matmul`, `sum`, etc.).
-
-### ⚙️ [src/backend](src/backend/README.md)
-**The Execution Engine**. Manages the **Zero-Cost Dispatch System** and interfaces with hardware accelerators (MKL, BLIS, Accelerate, SIMD).
-
-### 🧠 [src/autograd](src/autograd/README.md)
-**The ML Engine**. Implements `Tensor` for Reverse Mode Automatic Differentiation, Neural Network layers, and Optimizers.
 
 ## Quick Start
 
