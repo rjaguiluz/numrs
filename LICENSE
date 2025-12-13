@@ -1,0 +1,89 @@
+# NumRs Dual License
+
+Copyright © 2025 Rodrigo Aguiluz Mena
+
+This software is available under two licenses:
+
+## 1️⃣ Non-Commercial License (Default)
+
+### AGPL-3.0 for Non-Commercial Use
+
+For non-commercial use, this software is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+**You are free to:**
+- ✅ Use the software for personal, educational, or research purposes
+- ✅ Study and learn from the source code
+- ✅ Modify and create derivative works
+- ✅ Share and redistribute (under the same license)
+
+**Conditions:**
+- 📝 **Attribution Required**: You must give appropriate credit to "NumRs by Rodrigo Aguiluz Mena"
+- 🔓 **Share Alike**: Derivative works must be licensed under AGPL-3.0
+- 🌐 **Network Use = Distribution**: If you run modified versions on a server, you must make the source code available to users
+
+**Restrictions:**
+- ❌ **No Selling Forks**: You may NOT sell, redistribute, or monetize this software or modified versions as a product without a commercial license
+- ❌ **No Proprietary SaaS**: If you offer this as a service, you MUST publish your source code (AGPL requirement)
+
+Note: Companies CAN use NumRs internally for free under AGPL-3.0, as long as they don't sell it or offer it as a closed-source SaaS.
+
+Full AGPL-3.0 license text: https://www.gnu.org/licenses/agpl-3.0.html
+
+---
+
+## 2️⃣ Commercial License
+
+### For Commercial Use - Contact for Pricing
+
+If you want to use NumRs for **commercial purposes**, you must obtain a commercial license.
+
+**Commercial use includes:**
+- 💼 Selling NumRs or modified versions as a product
+- 📦 Redistributing NumRs in a commercial package without source code
+- ☁️ Offering NumRs as a closed-source SaaS/cloud service
+- 🏪 Bundling NumRs into proprietary software for resale
+
+**Benefits of Commercial License:**
+- ✅ No copyleft requirements (keep your modifications private)
+- ✅ No obligation to publish your source code
+- ✅ Use in proprietary software
+- ✅ Priority support and direct access to the author
+- ✅ Flexibility to modify and redistribute as needed
+
+**To obtain a commercial license, contact:**
+- 📧 Email: rj.aguiluz@gmail.com
+- 🌐 Website: https://numrs.dev
+- 💬 GitHub: https://github.com/rjaguiluz/numrs
+
+---
+
+## ⚖️ Summary
+
+| Use Case | License | Cost |
+|----------|---------|------|
+| Personal projects | AGPL-3.0 | 🆓 Free |
+| Academic/Research | AGPL-3.0 | 🆓 Free |
+| Open source projects | AGPL-3.0 | 🆓 Free |
+| Internal company use | AGPL-3.0 | 🆓 Free |
+| **Selling/Redistributing as product** | Commercial | 💰 Contact |
+| **Offering as SaaS without code** | Commercial | 💰 Contact |
+
+---
+
+## 🔍 How to Choose?
+
+**Use the FREE AGPL-3.0 license if:**
+- You're a student or hobbyist
+- You're doing academic research
+- Your project is open source and non-commercial
+- You're okay with sharing your modifications
+
+**You NEED a Commercial License if:**
+- You want to sell NumRs or forks as a product
+- You want to bundle NumRs in proprietary software
+- You want to offer closed-source SaaS (without publishing your code)
+- You want to redistribute without AGPL requirements
+
+---
+
+**Questions? Contact the author to discuss your use case.**
