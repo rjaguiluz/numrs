@@ -1,5 +1,10 @@
-
 from setuptools import setup, find_packages
+from setuptools.dist import Distribution
+
+class BinaryDistribution(Distribution):
+    """Force setuptools to recognize this as a binary distribution."""
+    def has_ext_modules(self):
+        return True
 
 setup(
     name="numrs",
@@ -13,4 +18,5 @@ setup(
     package_data={"numrs": ["*.so", "*.dylib", "*.dll"]},
     include_package_data=True,
     license="AGPL-3.0-only",
+    distclass=BinaryDistribution,
 )
