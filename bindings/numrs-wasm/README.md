@@ -1,11 +1,11 @@
 # @numrs/wasm
 
-**NumRs WASM** is the WebAssembly binding for the [NumRs](https://github.com/rjaguiluz/numrs) numerical engine, bringing high-performance tensor operations and neural networks to the browser and Node.js.
+**NumRs WASM** is the WebAssembly binding for the [NumRs](https://github.com/rjaguiluz/numrs) numerical engine, bringing high-performance tensor operations and deep learning to the browser and Node.js.
 
 ## 🚀 Features
 
 - **Zero FFI overhead**: Direct WASM calls.
-- **SIMD acceleration**: Uses WebAssembly SIMD when available.
+- **Deep Learning**: Full support for Autograd, Neural Networks, and Optimizers.
 - **Universal**: Works in Browser (ESM), Node.js, Deno, and Bundlers.
 - **TypeScript**: Full type definitions included.
 
@@ -60,21 +60,52 @@ Add this to your HTML `<head>`:
 
 ### 📦 Bundlers (Vite, Webpack) & Node.js
 
-If you are using a bundler or Node.js, standard imports work automatically:
-
 ```javascript
-import init, { Tensor } from '@numrs/wasm';
+import init, { Tensor, Sequential, Linear, ReLU, Trainer } from '@numrs/wasm';
 
-// In Node.js/Bundlers, init() might not be needed depending on setup, 
-// but for WASM it's good practice to ensure initialization.
+// Initialize WASM
 await init(); 
 
-const t = Tensor.ones([2, 2]);
+// 1. Define Model
+const model = new Sequential();
+model.add_linear(new Linear(10, 32));
+model.add_relu(new ReLU());
+model.add_linear(new Linear(32, 1));
+
+// 2. Training Loop
+const trainer = new Trainer(model, "adam", "mse", 0.01);
+// Assuming xTrain and yTrain are Tensors
+trainer.fit(xTrain, yTrain, 10);
 ```
+
+### 🧠 Optimizers & Loss Functions
+
+NumRs supports a wide range of optimizers and loss functions for training:
+
+| Context        | Supported Values                                                                                                                         |
+| :------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| **Optimizers** | `"sgd"`, `"adam"`, `"adamw"`, `"nadam"`, `"radam"`, `"rmsprop"`, `"adagrad"`, `"adadelta"`, `"lamb"`, `"adabound"`, `"lbfgs"`, `"rprop"` |
+| **Losses**     | `"mse"` (Regression), `"cross_entropy"` (Classification)                                                                                 |
+
+### 🔍 Advanced Topics
+
+#### Time Series (1D CNN)
+Use `Conv1d` for sequence processing. input shape should be `[Batch, Channels, Length]`.
+```javascript
+model.add_conv1d(new nn.Conv1d(in_channels, out_channels, kernel_size));
+model.add_relu(new nn.ReLU());
+model.add_flatten(new nn.Flatten(1, -1));
+model.add_linear(new nn.Linear(hidden_size, output_size));
+```
+
+#### ONNX Support
+NumRs WASM can export models to JSON representation compatible with web inference.
+- **Export**: `OnnxModelWrapper.export_model_to_json(...)`
+- **Inference**: `OnnxModelWrapper.load_from_json(...)`
 
 ## 📚 Documentation
 
-For full API documentation, please refer to the main [NumRs Repository](https://github.com/rjaguiluz/numrs).
+For full API documentation, please refer to the main [NumRs Repository](https://github.com/rjaguiluz/numrs) or the detailed docs in `DOCS.md`.
 
 ## License
 
