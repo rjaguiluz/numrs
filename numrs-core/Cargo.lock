@@ -1331,7 +1331,7 @@ dependencies = [
 
 [[package]]
 name = "numrs-core"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "accelerate-src",
  "anyhow",
