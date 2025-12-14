@@ -13,7 +13,7 @@ napi = { version = "2", features = ["napi4"] }
 napi-derive = "2"
 # Usar BLAS/MKL sin WebGPU para evitar async overhead en Node.js
 # numrs-core v0.1.1 fixes Rayon compilation issues
-numrs = { package = "numrs-core", path = "../../numrs-core", version = "0.1.1", default-features = false, features = ["blas-backend", "parallel"] }
+numrs = { package = "numrs-core", version = "0.1.1", default-features = false, features = ["blas-backend", "parallel"] }
 anyhow = "1.0"
 
 [features]

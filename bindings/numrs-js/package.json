@@ -19,6 +19,15 @@
     "numpy",
     "pytorch"
   ],
+  "files": [
+    "dist",
+    "src",
+    "scripts",
+    "index.d.ts",
+    "Cargo.toml",
+    "LICENSE",
+    "README.md"
+  ],
   "author": "Rodrigo Aguiluz",
   "license": "AGPL-3.0-only",
   "devDependencies": {
