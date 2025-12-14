@@ -1,6 +1,6 @@
 {
   "name": "@numrs/wasm",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "NumRs WebAssembly bindings for browser and Node.js",
   "main": "pkg/numrs_wasm.js",
   "types": "pkg/numrs_wasm.d.ts",

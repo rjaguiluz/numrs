@@ -122,7 +122,7 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: "cd bindings/numrs-c && cargo build --release"
           
           # Repair wheels: auditwheel (Linux) and delocate (Mac) automatically bundle the .so/.dylib
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair -w {dest_dir} {wheel}"
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/project/bindings/numrs-c/target/release && auditwheel repair -w {dest_dir} {wheel}"
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} -v {wheel}"
           
           # Point setup.py to the built library
