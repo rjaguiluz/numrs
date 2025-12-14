@@ -1,6 +1,6 @@
 {
   "name": "@numrs/node",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Node.js bindings for NumRs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,6 +28,7 @@
     "scripts",
     "index.d.ts",
     "Cargo.toml",
+    ".cargo",
     "LICENSE",
     "README.md"
   ],
