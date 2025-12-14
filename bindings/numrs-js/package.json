@@ -1,6 +1,6 @@
 {
   "name": "@numrs/node",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "Node.js bindings for NumRs",
   "main": "dist/ts/index.js",
   "types": "dist/ts/index.d.ts",
