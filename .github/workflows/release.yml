@@ -116,6 +116,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.5
         env:
           # Important: Tell cibuildwheel to build numrs-c first
+          CIBW_ARCHS: "auto64"
           CIBW_BEFORE_ALL_LINUX: "yum install -y curl || true && curl https://sh.rustup.rs -sSf | sh -s -- -y && export PATH=$HOME/.cargo/bin:$PATH && cargo build --release --manifest-path bindings/numrs-c/Cargo.toml"
           CIBW_BEFORE_ALL_MACOS: "cd bindings/numrs-c && cargo build --release"
           CIBW_BEFORE_ALL_WINDOWS: "cd bindings/numrs-c && cargo build --release"
