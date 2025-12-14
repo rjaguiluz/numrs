@@ -125,9 +125,9 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} -v {wheel}"
           
           # Point setup.py to the built library
-          # Note: We need a custom env var or move file logic in setup.py to find the lib
-          # For now, simplistic approach: copy lib to package dir in BEFORE_BUILD
-          CIBW_BEFORE_BUILD: "cp bindings/numrs-c/target/release/libnumrs_c* bindings/numrs-py/numrs/ || echo 'Windows DLL copy logic here'"
+          CIBW_BEFORE_BUILD_LINUX: "cp /usr/lib/libnumrs_c.so bindings/numrs-py/numrs/"
+          CIBW_BEFORE_BUILD_MACOS: "cp bindings/numrs-c/target/release/libnumrs_c.dylib bindings/numrs-py/numrs/"
+          CIBW_BEFORE_BUILD_WINDOWS: "echo 'Windows packaging TODO'"
 
         with:
           package-dir: ./bindings/numrs-py
