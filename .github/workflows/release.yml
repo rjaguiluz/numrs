@@ -117,7 +117,7 @@ jobs:
         env:
           # Important: Tell cibuildwheel to build numrs-c first
           CIBW_ARCHS: "auto64"
-          CIBW_BEFORE_ALL_LINUX: "if [ -f /etc/alpine-release ]; then apk add --no-cache curl build-base; else yum install -y curl || true; fi && curl https://sh.rustup.rs -sSf | sh -s -- -y && export PATH=$HOME/.cargo/bin:$PATH && cargo build --release --manifest-path bindings/numrs-c/Cargo.toml && find . -name libnumrs_c.so -exec cp {} /usr/lib/ \\;"
+          CIBW_BEFORE_ALL_LINUX: "if [ -f /etc/alpine-release ]; then apk add --no-cache curl build-base; else yum install -y curl || true; fi && curl https://sh.rustup.rs -sSf | sh -s -- -y && export PATH=$HOME/.cargo/bin:$PATH && cargo build --release --manifest-path bindings/numrs-c/Cargo.toml && find . -name 'libnumrs_c.so' -exec cp {} /usr/lib/ \\; && ls -l /usr/lib/libnumrs_c.so"
           CIBW_BEFORE_ALL_MACOS: "cd bindings/numrs-c && cargo build --release"
           CIBW_BEFORE_ALL_WINDOWS: "cd bindings/numrs-c && cargo build --release"
           
@@ -125,7 +125,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-listdeps {wheel} && delocate-wheel -w {dest_dir} -v {wheel}"
           
           # Point setup.py to the built library
-          CIBW_BEFORE_BUILD_LINUX: "cp /usr/lib/libnumrs_c.so bindings/numrs-py/numrs/"
+          CIBW_BEFORE_BUILD_LINUX: "ls -l /usr/lib/libnumrs_c.so && cp /usr/lib/libnumrs_c.so bindings/numrs-py/numrs/"
           CIBW_BEFORE_BUILD_MACOS: "cp bindings/numrs-c/target/release/libnumrs_c.dylib bindings/numrs-py/numrs/"
           CIBW_BEFORE_BUILD_WINDOWS: "echo 'Windows packaging TODO'"
 

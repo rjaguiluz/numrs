@@ -8,7 +8,7 @@ class BinaryDistribution(Distribution):
 
 setup(
     name="numrs",
-    version="0.1.18",
+    version="0.1.19",
     description="Python bindings for NumRs",
     packages=find_packages(),
     install_requires=[
