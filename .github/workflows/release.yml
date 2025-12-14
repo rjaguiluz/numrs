@@ -112,7 +112,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.5
         env:
           # Important: Tell cibuildwheel to build numrs-c first
-          CIBW_BEFORE_ALL_LINUX: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && source $HOME/.cargo/env && cd bindings/numrs-c && cargo build --release"
+          CIBW_BEFORE_ALL_LINUX: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && . $HOME/.cargo/env && cd bindings/numrs-c && $HOME/.cargo/bin/cargo build --release"
           CIBW_BEFORE_ALL_MACOS: "cd bindings/numrs-c && cargo build --release"
           CIBW_BEFORE_ALL_WINDOWS: "cd bindings/numrs-c && cargo build --release"
           
