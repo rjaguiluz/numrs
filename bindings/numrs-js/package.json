@@ -1,13 +1,13 @@
 {
   "name": "numrs-node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Node.js bindings for NumRs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "npm run build:native && npm run build:ts",
     "build:native": "cargo build --release && node ./scripts/postbuild.js",
-    "build:ts": "tsc",
+    "build:ts": "tsc -p .",
     "clean": "rm -rf dist target index.node",
     "test": "node examples/api_demo.js",
     "install": "node scripts/install-native.js"
