@@ -1,6 +1,6 @@
 [package]
 name = "numrs-core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Rodrigo Aguiluz Mena"]
 description = "A high-performance numerical computing library with multi-backend dispatch (SIMD, BLAS/MKL, WebGPU) and zero-cost abstractions"
