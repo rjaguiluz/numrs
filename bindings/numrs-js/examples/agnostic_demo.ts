@@ -19,8 +19,8 @@ async function run() {
 
     // 2. Tensor Ops (Autograd)
     console.log("\n2. Tensor Operations:");
-    const t1 = new Tensor(a1, null, true);
-    const t2 = new Tensor(a2, null, true);
+    const t1 = new Tensor(a1, undefined, true);
+    const t2 = new Tensor(a2, undefined, true);
 
     const t3 = add(t1, t2); // Should return Tensor
     console.log("   add(Tensor, Tensor) =", t3.data.toString());
@@ -30,7 +30,7 @@ async function run() {
 
     console.log("\n   Backward pass check:");
     t4.backward();
-    console.log("   t1.grad =", t1.grad.data.toString());
+    console.log("   t1.grad =", t1.grad?.data.toString());
 
     // 3. Mixed Ops (Should Fail currently)
     console.log("\n3. Mixed Operations (Expect Error):");

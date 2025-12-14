@@ -1,6 +1,5 @@
-import { Tensor } from '../ts/tensor';
-import { Sequential } from '../ts/nn/sequential';
-import { Linear } from '../ts/nn/linear';
+import { Tensor } from '../ts';
+import { Sequential, Linear } from '../ts/autograd/nn';
 
 console.log("Verifying new bindings...");
 
@@ -38,7 +37,7 @@ console.log("Exp output:", t_exp.data);
 // 3. Stats
 console.log("Testing stats (softmax, cross_entropy)...");
 const logits = new Tensor([[1.0, 2.0, 3.0]], [1, 3]);
-const sm = native.softmax(logits.native, 1);
+const sm = native.softmax(logits, 1);
 console.log("Softmax output shape:", sm.shape);
 
 // 4. Reduction
@@ -47,7 +46,7 @@ const t3 = new Tensor([1, 5, 2], [3]);
 const sum_val = t3.sum();
 console.log("Sum output:", sum_val.data); // Should be [8] around 8
 
-const max_val = native.max(t3.native);
+const max_val = native.max(t3);
 console.log("Max output (native):", max_val.data); // Should be [5]
 
 // 5. Shape
@@ -63,7 +62,7 @@ console.log("Reshape shape:", t_reshape.shape); // [4, 1]
 console.log("Testing dot...");
 const v1 = new Tensor([1, 2, 3], [3]);
 const v2 = new Tensor([4, 5, 6], [3]);
-const dot_res = native.dot(v1.native, v2.native);
+const dot_res = native.dot(v1, v2);
 console.log("Dot result:", dot_res.data); // 4+10+18 = 32
 
 console.log("Verification finished.");
