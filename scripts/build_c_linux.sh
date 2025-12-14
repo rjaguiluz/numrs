@@ -9,6 +9,8 @@ ls -la
 if [ -f /etc/alpine-release ]; then
     echo "Detected Alpine Linux"
     apk add --no-cache curl build-base
+    # Musl defaults to static linking. Force dynamic linking for cdylib.
+    export RUSTFLAGS="-C target-feature=-crt-static"
 else
     echo "Detected Manylinux (CentOS/RHEL)"
     yum install -y curl || true
