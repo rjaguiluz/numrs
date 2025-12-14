@@ -1,11 +1,13 @@
 {
   "name": "@numrs/wasm",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "NumRs WebAssembly bindings for browser and Node.js",
   "main": "pkg/numrs_wasm.js",
   "types": "pkg/numrs_wasm.d.ts",
   "files": [
-    "pkg"
+    "pkg",
+    "pkg-web",
+    "pkg-bundler"
   ],
   "scripts": {
     "build": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target nodejs --release --out-dir pkg",
