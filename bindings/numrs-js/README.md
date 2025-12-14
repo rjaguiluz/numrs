@@ -1,6 +1,5 @@
-# NumRs JavaScript Bindings
-
-High-performance Node.js bindings for NumRs with zero-copy Float32 operations powered by Intel MKL.
+# @numrs/node
+High-performance Node.js bindings for NumRs with zero-copy Float32 operations.
 
 ## ✨ Features
 
@@ -10,30 +9,25 @@ High-performance Node.js bindings for NumRs with zero-copy Float32 operations po
 - **💾 Memory Efficient**: 50% memory reduction using Float32 instead of Float64
 - **🔧 Type Safe**: Full TypeScript definitions included
 
-## Performance
+## Prerequisites
 
-Benchmark results on 12th Gen Intel Core i9-12900HK:
+You must have **Rust** installed on your system to compile the native extension during installation.
 
-| Operation Category | Average Throughput | Best Performance |
-|-------------------|-------------------|------------------|
-| Matrix Multiplication | 40.44 Gops/s | 114.13 Gops/s (512×512) |
-| Reduction Operations | 513.54 Mops/s | 803.79 Mops/s (min) |
-| Binary Operations | 164.59 Mops/s | 278 Mops/s (sub) |
-| Unary Operations | 161.75 Mops/s | 577 Mops/s (neg) |
-
-See [BENCHMARK_JS_12th_Gen_IntelR_CoreTM_i9-12900HK.md](./BENCHMARK_JS_12th_Gen_IntelR_CoreTM_i9-12900HK.md) for complete benchmark results.
+```bash
+# Install Rust (macOS/Linux)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
 ## Installation
 
 ```bash
-npm install
-npm run build
+npm install @numrs/node
 ```
 
 ## Quick Start
 
 ```javascript
-const numrs = require('./index.node');
+const numrs = require('@numrs/node');
 
 // Create Float32Arrays
 const size = 10000;
