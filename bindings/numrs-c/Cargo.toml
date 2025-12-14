@@ -1,6 +1,6 @@
 [package]
 name = "numrs-c"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "C ABI bindings for NumRs"
 license = "AGPL-3.0-only"
@@ -9,7 +9,7 @@ license = "AGPL-3.0-only"
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
-numrs = { package = "numrs-core", path = "../../numrs-core", version = "0.1.5", default-features = false, features = ["blas-backend", "parallel"] }
+numrs = { package = "numrs-core", path = "../../numrs-core", version = "0.1.6", default-features = false, features = ["blas-backend", "parallel"] }
 sys-info = "0.9"
 chrono = "0.4"
 

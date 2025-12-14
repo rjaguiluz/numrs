@@ -2,7 +2,10 @@ const fs = require('fs');
 const path = require('path');
 
 const release = path.join(__dirname, '..', 'target', 'release');
-const dest = path.join(release, 'numrs_node.node');
+const dist = path.join(__dirname, '..', 'dist');
+if (!fs.existsSync(dist)) fs.mkdirSync(dist, { recursive: true });
+const dest = path.join(dist, 'numrs_node.node');
+const destRelease = path.join(release, 'numrs_node.node');
 
 // Platform-specific library names and extensions
 // Unix-like systems add 'lib' prefix, Windows does not
@@ -22,7 +25,8 @@ for (const filename of filesToTry) {
     try {
       // Always copy/overwrite to ensure latest build
       fs.copyFileSync(src, dest);
-      console.log(`postbuild: copied ${filename} -> numrs_node.node`);
+      fs.copyFileSync(src, destRelease);
+      console.log(`postbuild: copied ${filename} -> dist/numrs_node.node & target/release/numrs_node.node`);
       found = true;
       break;
     } catch (e) {
