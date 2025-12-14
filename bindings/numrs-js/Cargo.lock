@@ -1259,6 +1259,8 @@ dependencies = [
 [[package]]
 name = "numrs-core"
 version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed97158f517869ac948bf67884e18a7a7424564d93cbd6b546a9cfd0c6914604"
 dependencies = [
  "accelerate-src",
  "anyhow",

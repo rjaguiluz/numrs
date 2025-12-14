@@ -1,15 +1,5 @@
-# Cargo configuration for NAPI-RS builds
-
-# macOS requires -undefined dynamic_lookup to allow NAPI symbols
-# to be resolved at runtime by Node.js instead of at link time
-[target.aarch64-apple-darwin]
-rustflags = [
-  "-C", "link-arg=-undefined",
-  "-C", "link-arg=dynamic_lookup"
-]
-
 [target.x86_64-apple-darwin]
-rustflags = [
-  "-C", "link-arg=-undefined", 
-  "-C", "link-arg=dynamic_lookup"
-]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
+
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
