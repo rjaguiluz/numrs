@@ -1,7 +1,7 @@
 Package: numrs
 Type: Package
 Title: Bindings for NumRs Tensor Library
-Version: 0.1.7
+Version: 0.1.8
 Author: NumRs Team
 Maintainer: NumRs Team <team@numrs.rs>
 Description: R bindings for the NumRs high-performance tensor library, using C ABI.

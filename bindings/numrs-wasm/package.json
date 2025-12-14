@@ -1,6 +1,6 @@
 {
   "name": "@numrs/wasm",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "NumRs WebAssembly bindings for browser and Node.js",
   "main": "pkg/numrs_wasm.js",
   "types": "pkg/numrs_wasm.d.ts",
@@ -11,7 +11,7 @@
     "build": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target nodejs --release --out-dir pkg",
     "build:web": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target web --release --out-dir pkg-web",
     "build:bundler": "cross-env RUSTFLAGS=\"-C target-feature=+simd128,+atomics,+bulk-memory -C opt-level=z\" wasm-pack build --target bundler --release --out-dir pkg-bundler",
-    "build:all": "npm run build && npm run build:web && npm run build:bundler",
+    "build:all": "npm run build && npm run build:web && npm run build:bundler && rimraf pkg/.gitignore pkg-web/.gitignore pkg-bundler/.gitignore",
     "test": "wasm-pack test --node",
     "bench": "node bench.js",
     "bench:gpu": "node bench-gpu.js"
@@ -27,6 +27,7 @@
   "author": "numrs contributors",
   "license": "AGPL-3.0-only",
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "rimraf": "^6.1.2"
   }
 }

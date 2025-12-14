@@ -4,3 +4,6 @@ tests
 examples
 .gitignore
 Cargo.toml
+!pkg/
+!pkg-web/
+!pkg-bundler/
