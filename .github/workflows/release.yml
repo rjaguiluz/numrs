@@ -117,17 +117,7 @@ jobs:
         env:
           # Important: Tell cibuildwheel to build numrs-c first
           CIBW_ARCHS: "auto64"
-          CIBW_BEFORE_ALL_LINUX: >
-            set -xe &&
-            if [ -f /etc/alpine-release ]; then apk add --no-cache curl build-base; else yum install -y curl || true; fi &&
-            curl https://sh.rustup.rs -sSf | sh -s -- -y &&
-            export PATH=$HOME/.cargo/bin:$PATH &&
-            export CARGO_TARGET_DIR=/tmp/numrs-target &&
-            cargo build --release --manifest-path bindings/numrs-c/Cargo.toml &&
-            echo "Build finished, checking output..." &&
-            ls -la /tmp/numrs-target/release/ &&
-            cp /tmp/numrs-target/release/libnumrs_c.so /usr/lib/ &&
-            ls -l /usr/lib/libnumrs_c.so
+          CIBW_BEFORE_ALL_LINUX: "sh /project/scripts/build_c_linux.sh"
           CIBW_BEFORE_ALL_MACOS: "cd bindings/numrs-c && cargo build --release"
           CIBW_BEFORE_ALL_WINDOWS: "cd bindings/numrs-c && cargo build --release"
           
