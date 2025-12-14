@@ -33,9 +33,9 @@ jobs:
           cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
         continue-on-error: true
 
-  # 2. Publish NPM Packages (JS/WASM)
-  publish-npm:
-    name: Publish NPM Packages
+  # 2a. Publish WASM (Parallel)
+  publish-wasm:
+    name: Publish WASM
     runs-on: ubuntu-latest
     needs: publish-rust
     steps:
@@ -54,7 +54,6 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
-      # Build & Publish WASM
       - name: Build WASM
         working-directory: ./bindings/numrs-wasm
         run: |
@@ -68,14 +67,29 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
 
-      # Build & Publish JS
-      - name: Build JS
+  # 2b. Publish Node.js (Parallel)
+  publish-node:
+    name: Publish Node.js
+    runs-on: ubuntu-latest
+    needs: publish-rust
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build Node Binding
         working-directory: ./bindings/numrs-js
         run: |
           npm install
           npm run build
 
-      - name: Publish JS
+      - name: Publish Node Binding
         working-directory: ./bindings/numrs-js
         run: npm publish --access public
         env:
