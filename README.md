@@ -7,6 +7,10 @@
 ![Rust](https://img.shields.io/badge/rust-stable-orange)
 ![WASM](https://img.shields.io/badge/wasm-supported-purple)
 [![Website](https://img.shields.io/badge/website-numrs.dev-blue)](https://numrs.dev)
+![Status](https://img.shields.io/badge/status-alpha-orange.svg)
+
+> [!WARNING]
+> **This project is currently in Alpha.** APIs are subject to change and it is not yet recommended for mission-critical production use.
 
 **NumRs** (Numeric Rust) is a next-generation numerical computing ecosystem. Built from scratch in Rust, it provides a unified, high-performance engine that powers bindings across the most popular programming languages. It combines the ease of use of NumPy/PyTorch with the safety and speed of safe Rust.
 
@@ -17,7 +21,7 @@ Whether you are training models in Python, deploying to the browser with WebAsse
 ## ⚡ Key Features
 
 *   **Universal Core**: A single, robust Rust codebase powers all 5 bindings. Write logic once, run it anywhere.
-*   **Hardware Acceleration**: Auto-detects and uses AVX2/AVX-512 (x86) or NEON/Metal (ARM/Apple Silicon) for near-native speeds.
+*   **Hardware Acceleration**: Auto-detects and uses AVX2/AVX-512 (x86) or Accelerate/Metal (Apple Silicon) for near-native speeds.
 *   **Deep Learning Native**: Built-in autograd engine (Reverse-mode AD) and a complete suite of Neural Network layers (`Linear`, `Conv1d`, `LSTM`, `Transformer`).
 *   **Zero-Copy Architecture**: Bindings share memory directly with the Rust core, eliminating serialization overhead for large tensors.
 *   **Production Ready**: Thread-safe parallel execution via Rayon, rigorous type checking, and guaranteed memory safety.
@@ -162,6 +166,25 @@ import { Tensor } from '@numrs/node';
 // ... model training ...
 const dummyInput = Tensor.randn([1, 10]);
 model.saveOnnx(dummyInput, "model.onnx");
+```
+
+#### 🧠 Inference (Import)
+NumRs can also load and run ONNX models (even users from PyTorch/TensorFlow).
+
+**Python**
+```python
+from numrs.onnx import OnnxModel
+
+model = OnnxModel("model.onnx")
+output = model.infer(dummy_input)
+```
+
+**Node.js**
+```javascript
+import { OnnxModel } from '@numrs/node';
+
+const model = OnnxModel.load("model.onnx");
+const output = model.infer(dummyInput.data); // specific array
 ```
 
 ---
