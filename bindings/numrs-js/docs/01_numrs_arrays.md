@@ -5,7 +5,7 @@ Zero-copy wrapper around logical `Float32Array`.
 
 ## Creation
 ```javascript
-const { NumRsArray } = require('numrs-node');
+const { NumRsArray } = require('@numrs/node');
 
 const data = new Float32Array([1, 2, 3, 4]);
 const shape = [2, 2];

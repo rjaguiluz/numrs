@@ -4,7 +4,7 @@
 WASM binding exports a JSON representation of the ONNX proto.
 
 ```javascript
-import { OnnxModelWrapper } from 'numrs-wasm';
+import { OnnxModelWrapper } from '@numrs/wasm';
 
 const dummy = new Tensor(...);
 const json = OnnxModelWrapper.export_model_to_json(model, dummy);

@@ -1,6 +1,6 @@
 # NumRs Node.js Documentation
 
-**high-performance numerical compution and deep learning engine**
+**high-performance numerical computation and deep learning engine**
 
 ## 1. Introduction
 The **NumRs Node Binding** provides native performance for AI tasks in JavaScript. Powered by N-API, it minimizes overhead and enables true Zero-Copy data sharing between JS and Rust.
@@ -10,7 +10,7 @@ The **NumRs Node Binding** provides native performance for AI tasks in JavaScrip
 ## 2. Installation
 
 ```bash
-npm install numrs-node
+npm install @numrs/node
 ```
 
 ---
@@ -18,7 +18,7 @@ npm install numrs-node
 ## 3. Quick Start
 
 ```javascript
-const { Tensor, NumRsArray } = require('numrs-node');
+const { Tensor, NumRsArray } = require('@numrs/node');
 
 // 1. Array
 const data = new Float32Array([1, 2, 3, 4]);
@@ -100,8 +100,8 @@ trainer.fit(dataset, dataset, 10);
 
 ### Time Series (1D CNN)
 Use `nn.Conv1d` for sequence processing.
-*   **Input**: `[Batch, Channels, Length]`.
-*   **Layers**: `Conv1d` -> `ReLU` -> `Flatten` -> `Linear`.
+*   **Input**: `[Batch, Length]`. Use `Unsqueeze(1)` to add channel dim -> `[Batch, 1, Length]`.
+*   **Layers**: `Unsqueeze` -> `Conv1d` -> `BatchNorm1d` -> `ReLU` -> `Flatten` -> `Linear`.
 
 ### ONNX
 *   **Export**: `model.saveOnnx(dummyInput, "model.onnx")`

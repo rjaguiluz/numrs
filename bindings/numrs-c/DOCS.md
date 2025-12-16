@@ -1,6 +1,6 @@
 # NumRs C Documentation
 
-**high-performance numerical compution and deep learning engine**
+**high-performance numerical computation and deep learning engine**
 
 ## 1. Introduction
 The **NumRs C ABI** is the foundational layer of the ecosystem. It exposes the Rust core to any language capable of FFI, providing a stable, zero-cost interface for high-performance computing.

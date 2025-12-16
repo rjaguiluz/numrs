@@ -1,6 +1,6 @@
 # NumRs R Documentation
 
-**high-performance numerical compution and deep learning engine**
+**high-performance numerical computation and deep learning engine**
 
 ## 1. Introduction
 The **NumRs R Binding** brings systems-level deep learning capabilities to R. It interfaces via the C-ABI to offer high-speed tensor operations and model training within the R statistical environment.

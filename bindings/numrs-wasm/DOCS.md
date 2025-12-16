@@ -1,6 +1,6 @@
 # NumRs WASM Documentation
 
-**high-performance numerical compution and deep learning engine**
+**high-performance numerical computation and deep learning engine**
 
 ## 1. Introduction
 The **NumRs WASM Binding** brings professional AI training and inference to the browser. It supports WebGPU acceleration and runs entirely client-side, ensuring data privacy and low latency.
@@ -10,15 +10,15 @@ The **NumRs WASM Binding** brings professional AI training and inference to the 
 ## 2. Installation
 
 ```bash
-npm install numrs-wasm
-```
+npm install @numrs/wasm
+
 
 ---
 
 ## 3. Quick Start
 
 ```javascript
-import init, { NumRsArray, Tensor } from 'numrs-wasm';
+import init, { NumRsArray, Tensor } from '@numrs/wasm';
 await init();
 
 // 1. Array
@@ -50,7 +50,7 @@ console.log(res.data().to_string());
 Use `Sequential` as the container.
 
 ```javascript
-import { Sequential, Linear, ReLU } from 'numrs-wasm';
+import { Sequential, Linear, ReLU } from '@numrs/wasm';
 
 const model = new Sequential();
 model.add_linear(new Linear(10, 32));
@@ -62,7 +62,7 @@ model.add_linear(new Linear(32, 1));
 Use `Trainer` for client-side training.
 
 ```javascript
-import { Trainer } from 'numrs-wasm';
+import { Trainer } from '@numrs/wasm';
 
 const trainer = new Trainer(model, "adam", "mse", 0.01);
 trainer.fit(xTrain, yTrain, 10);

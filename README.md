@@ -1,14 +1,64 @@
-# numrs — core library
+# NumRs
 
-**NumRs** is an experimental, high-performance numerical & Deep Learning Engine framework for Rust, inspired by NumPy and PyTorch.
+> **High-Performance Numerical & Deep Learning Engine for Rust, Python, Node.js, R, and WASM.**
 
-This project is structured as a collection of specialized modules, each with its own specific responsibility. This README serves as a high-level index to the detailed documentation for each component.
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Rust](https://img.shields.io/badge/rust-stable-orange)
+![WASM](https://img.shields.io/badge/wasm-supported-purple)
+[![Website](https://img.shields.io/badge/website-numrs.dev-blue)](https://numrs.dev)
 
-## Architecture Overview
+**NumRs** (Numeric Rust) is a next-generation numerical computing ecosystem. Built from scratch in Rust, it provides a unified, high-performance engine that powers bindings across the most popular programming languages. It combines the ease of use of NumPy/PyTorch with the safety and speed of safe Rust.
 
-NumRs is built on two main layers:
-1.  **Numerical Engine**: Handles arrays, types, and raw execution (SIMD/BLAS).
-2.  **Machine Learning Framework**: Built on top of the engine, providing autograd and neural networks.
+Whether you are training models in Python, deploying to the browser with WebAssembly, or building backend services in Node.js, **NumRs guarantees the same behavior, same performance, and same API everywhere.**
+
+---
+
+## ⚡ Key Features
+
+*   **Universal Core**: A single, robust Rust codebase powers all 5 bindings. Write logic once, run it anywhere.
+*   **Hardware Acceleration**: Auto-detects and uses AVX2/AVX-512 (x86) or NEON/Metal (ARM/Apple Silicon) for near-native speeds.
+*   **Deep Learning Native**: Built-in autograd engine (Reverse-mode AD) and a complete suite of Neural Network layers (`Linear`, `Conv1d`, `LSTM`, `Transformer`).
+*   **Zero-Copy Architecture**: Bindings share memory directly with the Rust core, eliminating serialization overhead for large tensors.
+*   **Production Ready**: Thread-safe parallel execution via Rayon, rigorous type checking, and guaranteed memory safety.
+
+---
+
+## ⚡ Performance
+
+NumRs is engineered for speed. On an **Apple M3 Max**, NumRs achieves **2.42 Tops/s** (Tera-operations per second) in matrix multiplication (FP32), utilizing Metal acceleration and SIMD optimizations.
+
+| Backend             | Operation | Size          | Speed           |
+| :------------------ | :-------- | :------------ | :-------------- |
+| **Accelerate/BLAS** | `matmul`  | 2048x2048     | **2.42 Tops/s** |
+| **Metal (GPU)**     | `mul`     | 100K elements | ~450 Mops/s     |
+| **SIMD (CPU)**      | `sum`     | 1M elements   | ~5 Gops/s       |
+
+> *Benchmark run via `cargo run --bin numrs-bench --release`*
+>
+> 📄 **[View Full Benchmark Report](numrs-core/BENCHMARK_Apple_M3_Max_Apple_M3.md)**
+
+
+---
+
+## ❤️ Contributors
+
+Thank you to everyone who has contributed to NumRs!
+
+[![Contributors](https://contrib.rocks/image?repo=rjaguiluz/numrs)](https://github.com/rjaguiluz/numrs/graphs/contributors)
+
+## 💰 Sponsors
+
+Support the development of NumRs!
+
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/rjaguiluz?style=for-the-badge&logo=github-sponsors)](https://github.com/sponsors/rjaguiluz)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/raguiluzm)
+
+---
+
+## 🏗 Architecture
+
+NumRs is designed as a layered ecosystem. The core engine handles the heavy lifting, while optimized bindings expose idiomatic APIs for each language.
 
 ```mermaid
 graph TD
@@ -25,42 +75,117 @@ graph TD
         NN[NN Modules]
     end
     
+    subgraph Bindings["Universal Bindings"]
+        JS[Node.js Binding]
+        PY[Python Binding]
+        WASM[WebAssembly]
+        R[R Language]
+        C[C ABI]
+    end
+    
     NumRs --> Engine
     NumRs --> ML
     Autograd --> Ops
     Ops --> Backend
     Ops --> Array
     Backend --> Array
+    
+    JS -.-> NumRs
+    PY -.-> NumRs
+    WASM -.-> NumRs
+    R -.-> NumRs
+    C -.-> NumRs
 ```
-
-## 📚 Ecosystem Documentation
-
-Select your preferred language to view the specific documentation:
-
-| Component      | Language          | Documentation                                 |
-| :------------- | :---------------- | :-------------------------------------------- |
-| **NumRs Core** | 🦀 **Rust**        | [View Rust Docs](numrs-core/DOCS.md)          |
-| **NumRs C**    | 🇨 **C / C++**     | [View C ABI Docs](numrs-c/DOCS.md)            |
-| **NumRs Node** | 🟢 **Node.js**     | [View JS Docs](bindings/numrs-js/DOCS.md)     |
-| **NumRs Wasm** | 🕸️ **WebAssembly** | [View Wasm Docs](bindings/numrs-wasm/DOCS.md) |
-| **NumRs Py**   | 🐍 **Python**      | [View Python Docs](bindings/numrs-py/DOCS.md) |
-| **NumRs R**    | 📐 **R**           | [View R Docs](bindings/numrs-r/DOCS.md)       |
 
 ---
 
-## DeepWiki Documentation (IA generated docs)
+## 🌐 The Rosetta Stone
 
-[DeepWiki](https://deepwiki.com/rjaguiluz/numrs)
+Perform the same operations consistently across any language.
 
+### Matrix Multiplication with Autograd
 
-## Quick Start
+#### 🦀 Rust (Core)
+```rust
+use numrs::tensor::Tensor;
 
-```bash
-# Build with auto-detected optimizations (ASICS/BLAS)
-cargo build --release
+let a = Tensor::randn(&[2, 3], true);
+let b = Tensor::randn(&[3, 2], true);
+let c = a.matmul(&b);
+
+c.backward();
+println!("{:?}", a.grad());
 ```
 
-For detailed examples, see the `examples/` directory.
+#### 🐍 Python
+```python
+import numrs
 
-## License
-AGPL-3.0-only
+# Drop-in replacement for standard workflows
+a = numrs.randn([2, 3], requires_grad=True)
+b = numrs.randn([3, 2], requires_grad=True)
+c = a @ b
+
+c.backward()
+print(a.grad)
+```
+
+#### 🟢 Node.js
+```javascript
+import { Tensor } from '@numrs/node';
+
+const a = Tensor.randn([2, 3], true);
+const b = Tensor.randn([3, 2], true);
+const c = a.matmul(b);
+
+c.backward();
+console.log(a.grad());
+```
+
+---
+
+## � ONNX Interoperability
+
+NumRs models can be exported to standard ONNX format, allowing you to visualize them in [Netron](https://netron.app) or deploy them with other runtimes.
+
+#### 🐍 Python Export
+```python
+import numrs
+# ... model training ...
+dummy_input = numrs.randn([1, 10])
+numrs.save_onnx(model, dummy_input, "model.onnx")
+```
+
+#### 🟢 Node.js Export
+```javascript
+import { Tensor } from '@numrs/node';
+// ... model training ...
+const dummyInput = Tensor.randn([1, 10]);
+model.saveOnnx(dummyInput, "model.onnx");
+```
+
+---
+
+## �🚀 Getting Started
+
+Select your platform to get started:
+
+| Language          | Install Command             | Documentation                                 |
+| :---------------- | :-------------------------- | :-------------------------------------------- |
+| 🦀 **Rust**        | `cargo add numrs`           | [View Rust Docs](numrs-core/DOCS.md)          |
+| 🐍 **Python**      | `pip install numrs`         | [View Python Docs](bindings/numrs-py/DOCS.md) |
+| 🟢 **Node.js**     | `npm install @numrs/node`   | [View JS Docs](bindings/numrs-js/DOCS.md)     |
+| 🕸️ **WebAssembly** | `npm install @numrs/wasm`   | [View Wasm Docs](bindings/numrs-wasm/DOCS.md) |
+| 📐 **R**           | `install.packages("numrs")` | [View R Docs](bindings/numrs-r/DOCS.md)       |
+| 🇨 **C / C++**     | *Link `libnumrs_c.so`*      | [View C ABI Docs](numrs-c/DOCS.md)            |
+
+---
+
+## 📄 License
+
+**NumRs is dual-licensed.**
+
+*   **Open Source**: [AGPL-3.0](LICENSE) (default). Free for open source, research, and internal use.
+*   **Commercial**: Contact us for a commercial license if you need to use NumRs in proprietary products without copyleft obligations.
+
+Copyright (c) 2025 NumRs Contributors.

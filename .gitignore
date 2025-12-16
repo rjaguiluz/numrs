@@ -72,7 +72,6 @@ js/target/*/stderr
 
 # Generated documentation files (keep core docs)
 ARCHITECTURE_DIAGRAM.md
-BENCHMARK*.md
 CHECKLIST*.md
 CLEANUP*.md
 GUIA*.md

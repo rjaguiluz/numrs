@@ -1,6 +1,6 @@
 # NumRs Python Documentation
 
-**high-performance numerical compution and deep learning engine**
+**high-performance numerical computation and deep learning engine**
 
 ## 1. Introduction
 The **NumRs Python Binding** offers a PyTorch-like API with the performance and safety of Rust. It serves as a drop-in replacement for research and production workloads requiring strict typing and speed.
