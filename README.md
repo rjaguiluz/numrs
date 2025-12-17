@@ -105,6 +105,8 @@ graph TD
 
 ## 🌐 The Rosetta Stone
 
+**If it works here, it works everywhere.**
+
 Perform the same operations consistently across any language.
 
 ### Matrix Multiplication with Autograd
@@ -201,6 +203,26 @@ Select your platform to get started:
 | 🕸️ **WebAssembly** | `npm install @numrs/wasm`   | [View Wasm Docs](bindings/numrs-wasm/DOCS.md) |
 | 📐 **R**           | `install.packages("numrs")` | [View R Docs](bindings/numrs-r/DOCS.md)       |
 | 🇨 **C / C++**     | *Link `libnumrs_c.so`*      | [View C ABI Docs](numrs-c/DOCS.md)            |
+
+---
+
+---
+
+## 🧭 Why NumRs Exists
+
+Numerical computing shouldn’t be fragmented.
+
+Today, numerical logic is rewritten for every platform:
+Python for research, JavaScript for the web, C++ for performance.
+Each rewrite introduces inconsistency, bugs, and friction.
+
+NumRs exists to remove that fragmentation.
+A single Rust core defines the behavior of every operation,
+while each language provides only syntax, not semantics.
+
+Write once.
+Run everywhere.
+Trust the math.
 
 ---
 
